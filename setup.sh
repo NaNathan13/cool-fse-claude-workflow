@@ -6,7 +6,33 @@
 # First run: copies kit + renders CLAUDE.md / CONTEXT.md from templates.
 # Re-run:    overwrites project-agnostic files only; never touches CLAUDE.md / CONTEXT.md.
 
-set -uo pipefail
+set -o pipefail
+
+# Read from /dev/tty if available, else fall back to env var or default.
+# Usage: prompt VAR_NAME "Prompt text" "default" "ENV_VAR_NAME"
+prompt() {
+  local var="$1" msg="$2" default="$3" envvar="$4"
+  local envval="${!envvar:-}"
+  if [[ -n "$envval" ]]; then
+    printf -v "$var" '%s' "$envval"
+    echo "  $msg [$envval] (from \$$envvar)"
+    return
+  fi
+  if [[ -r /dev/tty ]]; then
+    if [[ -n "$default" ]]; then
+      printf "  %s [%s]: " "$msg" "$default"
+    else
+      printf "  %s: " "$msg"
+    fi
+    local ans=""
+    read -r ans </dev/tty || ans=""
+    [[ -z "$ans" ]] && ans="$default"
+    printf -v "$var" '%s' "$ans"
+  else
+    printf -v "$var" '%s' "$default"
+    echo "  $msg → $default (no tty; using default)"
+  fi
+}
 
 REPO_URL="https://github.com/NaNathan13/cool-fse-claude-workflow.git"
 TARGET="$(pwd)"
@@ -80,8 +106,13 @@ else
     echo "  Diff (shipped → yours):"
     diff "$SRC/kit/.claude/settings.json" "$TARGET/.claude/settings.json" | sed 's/^/    /'
     echo ""
-    printf "  Overwrite settings.json? [y/N] "
-    read -r ans </dev/tty
+    ans="n"
+    if [[ "${OVERWRITE_SETTINGS:-}" == "y" ]]; then
+      ans="y"
+    elif [[ -r /dev/tty ]]; then
+      printf "  Overwrite settings.json? [y/N] "
+      read -r ans </dev/tty || ans="n"
+    fi
     if [[ "$ans" =~ ^[Yy]$ ]]; then
       cp "$SRC/kit/.claude/settings.json" "$TARGET/.claude/settings.json"
       echo "  → overwritten"
@@ -114,22 +145,11 @@ if [[ "$MODE" == "install" ]]; then
   # Suggest first child theme as default
   default_child="${child_candidates[0]}"
 
-  printf "  Project name (e.g. \"Perry Hotel\"): "
-  read -r project_name </dev/tty
-  [[ -z "$project_name" ]] && project_name="My Project"
-
-  printf "  Child theme directory [%s]: " "$default_child"
-  read -r child_dir </dev/tty
-  [[ -z "$child_dir" ]] && child_dir="$default_child"
-
+  prompt project_name "Project name (e.g. \"Perry Hotel\")" "My Project" "PROJECT_NAME"
+  prompt child_dir    "Child theme directory" "$default_child" "CHILD_THEME_DIR"
   default_url="http://${child_dir}.local/"
-  printf "  Local URL [%s]: " "$default_url"
-  read -r local_url </dev/tty
-  [[ -z "$local_url" ]] && local_url="$default_url"
-
-  printf "  Local proxy port [10000]: "
-  read -r local_port </dev/tty
-  [[ -z "$local_port" ]] && local_port="10000"
+  prompt local_url    "Local URL" "$default_url" "LOCAL_URL"
+  prompt local_port   "Local proxy port" "10000" "LOCAL_PORT"
 
   # Render CLAUDE.md
   sed \
