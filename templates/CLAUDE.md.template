@@ -1,0 +1,138 @@
+# CLAUDE.md
+
+Entry point for Claude Code on the **{{PROJECT_NAME}}** project. Read this once at session start. For methodology see `WORKFLOW.md`. For vocabulary see `CONTEXT.md`.
+
+## Project overview
+
+{{PROJECT_NAME}} is a WordPress FSE (Full Site Editing) site built on the cool-fse parent theme. Project-specific work lives in the `{{CHILD_THEME_DIR}}/` child theme.
+
+## Themes
+
+- **`cool-fse/`** — parent theme. Framework, global utilities, custom elements, base block implementations. **Do not modify without explicit user approval** (this is a pre-approved gate flagged in plans, otherwise pause and ask). Any proposed change must be described and confirmed before writing.
+- **`{{CHILD_THEME_DIR}}/`** — child theme. All project-specific work goes here. Mirrors the parent path to override any file (no registration needed — the autoloader picks it up).
+
+## Local development
+
+- **Local site URL**: `{{LOCAL_URL}}` (Local by Flywheel)
+- **Proxy port**: `{{LOCAL_PORT}}`
+- The `pnpm run local` command proxies `http://localhost:{{LOCAL_PORT}}` — use `pnpm run localcustom` to use the `.local` URL instead, or update `PROXY_URL` in `package.json`
+
+## Build commands
+
+Run from inside `{{CHILD_THEME_DIR}}/`:
+
+```bash
+pnpm install                 # install dependencies
+pnpm run local               # build, watch, + BrowserSync (proxy: http://localhost:{{LOCAL_PORT}})
+pnpm run localcustom         # same as local but using {{LOCAL_URL}}
+pnpm run dev                 # build and watch (no browser reload)
+pnpm run prod                # build and minify for production
+```
+
+All `blocks/**/*.css` files are auto-bundled into `public/style.css`. All `blocks/**/*.js` files are auto-bundled into `public/app.js`. esbuild discovers files via glob — adding a new file to `blocks/` automatically includes it on next build.
+
+## Theme architecture (summary)
+
+### PHP autoloading
+
+`cool-fse/functions.php`:
+
+1. Auto-loads every `.php` file under `features/**`
+2. Auto-loads every file matching `blocks/**/*-autoload.php`
+3. Before loading a parent file, checks if the child theme has the same relative path — if so, child wins
+4. Appends any remaining child `features/**/*.php` not already loaded
+
+Files prefixed with `_` (e.g., `features/_admin/`) are internal parent-theme files that should not be overridden.
+
+### Block anatomy
+
+Each Gutenberg block lives in `blocks/gutenberg/<block-name>/` and consists of:
+
+| File | Purpose |
+|---|---|
+| `<name>-block.json` | Registers block; sets ACF render template, icon, category |
+| `<name>.php` | Render template (HTML output) |
+| `<name>.css` | Block-scoped styles (auto-bundled) |
+| `<name>.js` | Block-scoped JS (auto-bundled) |
+
+Block JSON files are auto-registered via glob — no manual `register_block_type()` call needed. `"style": ["cool-fse-css"]` and `"script": "cool-fse-js"` handle enqueue.
+
+**Standard block PHP pattern:**
+
+```php
+<?php
+  $block_attributes = [
+    'class' => 'my-block acf-style-vars',
+    'style' => acf_to_css_var()
+  ];
+?>
+<div <?= get_block_attributes($block_attributes) ?>>
+  <?= maybe_get_block_video_background() ?>
+  <div <?= get_wrapper_attributes([ 'class' => 'rich-text' ]) ?>>
+    <!-- content -->
+  </div>
+</div>
+```
+
+Sub-blocks via `<?php block('gutenberg/<block-name>/<sub-part>') ?>` or `<?php block('components/<component-name>') ?>`.
+
+### CSS architecture
+
+**Utility-class first.** Before writing any block-level CSS, exhaust the utility classes in `cool-fse/blocks/global/css/`. New block CSS is an approval gate.
+
+Breakpoints: `768px` (mobile), `1024px` (desktop), `1200px` (huge).
+
+CSS custom properties from `theme.json`: `--wp--preset--color--<slug>`, `--wp--preset--font-family--<slug>`, `--wp--preset--spacing--<slug>`.
+
+`{{CHILD_THEME_DIR}}/blocks/global/css/global.css` sets `--font-family-main` and `--font-family-accent` and the brand's base typography overrides.
+
+### Wrapper system
+
+`.wrapper.wrapper--default` and `.wrapper.wrapper--small` control content width. Widths are set via `--default-wrapper-width` in global CSS and must be mirrored in `features/acf/modify-wrapper-widths.php` for the ACF editor to match.
+
+### Custom elements
+
+Defined in `cool-fse/blocks/global/js/custom-elements/` and available everywhere — sliders (`<ada-slider>`), modals (`<ada-modal>`), scroll animations (`<animate-on-scroll>`, `<animated-element>`), maps (`<g-map>`), and more. Check that directory before building anything interactive from scratch.
+
+`window.coolHelperFunctions` (from `blocks/global/js/_helper-functions.js`) provides common utilities: `slideUp`, `slideDown`, `coolAjax`, cookie/localStorage helpers, `debounce`, `generateID`.
+
+Vue 3 is bundled globally — use it for complex interactive blocks. Hide Vue-controlled elements during init with `v-cloak`.
+
+## Approval gates
+
+These actions require user confirmation before proceeding (or pre-approval in the plan — see `WORKFLOW.md`):
+
+1. **Any modification to `cool-fse/`** — describe the change and wait
+2. **Any new block-level CSS** — utility-class first; show why utilities can't cover it
+3. **ACF JSON hand-edits** — normally edit via WP Admin → JSON auto-syncs; hand-editing risks key collisions
+4. **Editing `functions.php` hooks**
+5. **New section in an FSE template** (homepage, archives, etc.)
+6. **Git commits** — never. The user owns all commits entirely. (`/seal` drafts the message; never runs `git commit`.)
+
+## Naming conventions
+
+- Block folder + file names: `kebab-case` matching the block name
+- Block JSON `"name"`: `acf/<block-name>`
+- PHP root class: `<block-name>` (matches folder)
+- CSS classes: `<block-name>` as root, BEM-style descendants
+- ACF field groups: **always edit by modifying JSON files in `acf-json/` directly** — never use WP Admin to create or change fields
+
+## ACF + Gutenberg integration
+
+- Blocks use ACF in `preview` mode — `"acf": { "mode": "preview", "renderTemplate": "<name>-block.php" }`
+- `acf_to_css_var()` converts ACF style fields (padding, color, etc.) into inline CSS variables on the block root
+- `get_wrapper_attributes()` applies ACF-controlled wrapper width/padding settings
+- `get_block_attributes()` merges block-level and ACF-level HTML attributes
+- Field groups are defined by editing JSON in `acf-json/` directly — WordPress syncs them on next admin load
+- **Never use WP Admin to create or edit ACF fields**
+
+## Tooling
+
+- **Playwright screenshots**: save to `.claude/screenshots/<plan-slug>/` (pass the path in the `filename` parameter, e.g. `filename: ".claude/screenshots/header.png"`). Keeps generated artifacts out of the default `.playwright-mcp/` dump.
+- **WP-CLI**: project may include a `.claude/wp` wrapper that runs WP-CLI with the correct Local MySQL socket pre-loaded.
+
+## Workflow
+
+This project uses the four-phase `/ponder` → `/forge` → `/temper` → `/seal` workflow. **Read `WORKFLOW.md` once for the methodology.** Read `CONTEXT.md` for canonical names and synonyms-to-avoid.
+
+The trivial lane (one-liner changes) skips the chain — just make the edit. Anything bigger goes through Ponder first.

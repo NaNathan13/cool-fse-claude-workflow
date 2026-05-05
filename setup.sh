@@ -1,0 +1,194 @@
+#!/usr/bin/env bash
+# cool-fse-claude-workflow — installer / updater
+# Run from inside `wp-content/themes/`:
+#   curl -fsSL https://raw.githubusercontent.com/NaNathan13/cool-fse-claude-workflow/main/setup.sh | bash
+#
+# First run: copies kit + renders CLAUDE.md / CONTEXT.md from templates.
+# Re-run:    overwrites project-agnostic files only; never touches CLAUDE.md / CONTEXT.md.
+
+set -uo pipefail
+
+REPO_URL="https://github.com/NaNathan13/cool-fse-claude-workflow.git"
+TARGET="$(pwd)"
+
+echo ""
+echo "→ cool-fse-claude-workflow installer"
+echo "  target: $TARGET"
+echo ""
+
+# --- 1. Verify we're in a wp-content/themes/ dir --------------------------------------
+if [[ ! -d "$TARGET/cool-fse" ]]; then
+  echo "✗ This doesn't look like a wp-content/themes/ directory (no cool-fse/ sibling)."
+  echo "  cd into your themes dir and run again."
+  exit 1
+fi
+
+# Find non-cool-fse theme dirs to suggest as the child theme
+child_candidates=()
+for d in "$TARGET"/*/; do
+  name="$(basename "$d")"
+  [[ "$name" == "cool-fse" ]] && continue
+  [[ -f "$d/style.css" || -f "$d/functions.php" ]] && child_candidates+=("$name")
+done
+
+if [[ ${#child_candidates[@]} -eq 0 ]]; then
+  echo "✗ No child theme detected (need at least one non-cool-fse theme dir with style.css or functions.php)."
+  exit 1
+fi
+
+# --- 2. Detect first-run vs update ----------------------------------------------------
+MODE="install"
+if [[ -f "$TARGET/WORKFLOW.md" ]]; then
+  MODE="update"
+fi
+echo "→ mode: $MODE"
+
+# --- 3. Clone repo to a temp dir ------------------------------------------------------
+TMPDIR="$(mktemp -d -t cool-fse-claude-workflow.XXXXXX)"
+trap 'rm -rf "$TMPDIR"' EXIT
+
+echo "→ fetching repo..."
+if ! git clone --depth 1 "$REPO_URL" "$TMPDIR/repo" >/dev/null 2>&1; then
+  echo "✗ Failed to clone $REPO_URL"
+  echo "  Check connectivity, gh auth, and that the repo exists."
+  exit 1
+fi
+SRC="$TMPDIR/repo"
+
+# --- 4. Copy project-agnostic files (both modes) --------------------------------------
+echo "→ copying WORKFLOW.md"
+cp "$SRC/kit/WORKFLOW.md" "$TARGET/WORKFLOW.md"
+
+echo "→ copying .claude/skills"
+mkdir -p "$TARGET/.claude/skills"
+rm -rf "$TARGET/.claude/skills/ponder" "$TARGET/.claude/skills/forge" "$TARGET/.claude/skills/temper" "$TARGET/.claude/skills/seal"
+cp -R "$SRC/kit/.claude/skills/." "$TARGET/.claude/skills/"
+
+echo "→ copying .claude/hooks"
+mkdir -p "$TARGET/.claude/hooks"
+cp "$SRC/kit/.claude/hooks/model-router.sh" "$TARGET/.claude/hooks/model-router.sh"
+chmod +x "$TARGET/.claude/hooks/model-router.sh"
+
+# settings.json — copy on install, diff-prompt on update
+if [[ "$MODE" == "install" ]]; then
+  echo "→ copying .claude/settings.json"
+  cp "$SRC/kit/.claude/settings.json" "$TARGET/.claude/settings.json"
+else
+  if ! diff -q "$SRC/kit/.claude/settings.json" "$TARGET/.claude/settings.json" >/dev/null 2>&1; then
+    echo ""
+    echo "  .claude/settings.json differs from shipped version."
+    echo "  Diff (shipped → yours):"
+    diff "$SRC/kit/.claude/settings.json" "$TARGET/.claude/settings.json" | sed 's/^/    /'
+    echo ""
+    printf "  Overwrite settings.json? [y/N] "
+    read -r ans </dev/tty
+    if [[ "$ans" =~ ^[Yy]$ ]]; then
+      cp "$SRC/kit/.claude/settings.json" "$TARGET/.claude/settings.json"
+      echo "  → overwritten"
+    else
+      echo "  → kept yours"
+    fi
+  fi
+fi
+
+# Plans + screenshots dirs
+mkdir -p "$TARGET/.claude/plans/active" "$TARGET/.claude/plans/done" "$TARGET/.claude/screenshots"
+[[ -f "$TARGET/.claude/plans/active/.gitkeep" ]] || touch "$TARGET/.claude/plans/active/.gitkeep"
+[[ -f "$TARGET/.claude/plans/done/.gitkeep" ]] || touch "$TARGET/.claude/plans/done/.gitkeep"
+[[ -f "$TARGET/.claude/screenshots/.gitkeep" ]] || touch "$TARGET/.claude/screenshots/.gitkeep"
+
+# update.sh helper
+mkdir -p "$TARGET/.claude/scripts"
+cat > "$TARGET/.claude/scripts/update.sh" <<'EOF'
+#!/usr/bin/env bash
+# Re-run the installer in update mode.
+cd "$(dirname "$0")/../.." && curl -fsSL https://raw.githubusercontent.com/NaNathan13/cool-fse-claude-workflow/main/setup.sh | bash
+EOF
+chmod +x "$TARGET/.claude/scripts/update.sh"
+
+# --- 5. Install mode: render templates ------------------------------------------------
+if [[ "$MODE" == "install" ]]; then
+  echo ""
+  echo "→ rendering templates"
+
+  # Suggest first child theme as default
+  default_child="${child_candidates[0]}"
+
+  printf "  Project name (e.g. \"Perry Hotel\"): "
+  read -r project_name </dev/tty
+  [[ -z "$project_name" ]] && project_name="My Project"
+
+  printf "  Child theme directory [%s]: " "$default_child"
+  read -r child_dir </dev/tty
+  [[ -z "$child_dir" ]] && child_dir="$default_child"
+
+  default_url="http://${child_dir}.local/"
+  printf "  Local URL [%s]: " "$default_url"
+  read -r local_url </dev/tty
+  [[ -z "$local_url" ]] && local_url="$default_url"
+
+  printf "  Local proxy port [10000]: "
+  read -r local_port </dev/tty
+  [[ -z "$local_port" ]] && local_port="10000"
+
+  # Render CLAUDE.md
+  sed \
+    -e "s|{{PROJECT_NAME}}|${project_name}|g" \
+    -e "s|{{CHILD_THEME_DIR}}|${child_dir}|g" \
+    -e "s|{{LOCAL_URL}}|${local_url}|g" \
+    -e "s|{{LOCAL_PORT}}|${local_port}|g" \
+    "$SRC/templates/CLAUDE.md.template" > "$TARGET/CLAUDE.md"
+  echo "  → wrote CLAUDE.md"
+
+  cp "$SRC/templates/CONTEXT.md.template" "$TARGET/CONTEXT.md"
+  echo "  → wrote CONTEXT.md"
+
+  echo ""
+  echo "✓ Installed."
+  echo ""
+  echo "  Next steps:"
+  echo "  1. Open WORKFLOW.md and skim it once."
+  echo "  2. Make sure the upstream /grill-me skill is installed (Pocock skills library)."
+  echo "  3. Start a new Claude Code session here: cd $TARGET && claude"
+  echo "  4. Try /ponder on your first task."
+  echo ""
+  exit 0
+fi
+
+# --- 6. Update mode: diff templates and report ----------------------------------------
+echo ""
+echo "→ checking templates against your current files"
+
+template_diff_report() {
+  local template="$1"
+  local actual="$2"
+  local label="$3"
+
+  [[ -f "$actual" ]] || return 0
+  [[ -f "$template" ]] || return 0
+
+  # Strip placeholders from template before diffing — actual file has them filled in
+  local stripped="$TMPDIR/stripped.${label}"
+  sed -E 's/\{\{[A-Z_]+\}\}/<value>/g' "$template" > "$stripped"
+
+  # Compute new top-level sections in template missing from actual
+  local new_sections
+  new_sections=$(comm -23 \
+    <(grep -E '^## ' "$stripped" | sort -u) \
+    <(grep -E '^## ' "$actual" | sort -u))
+
+  if [[ -n "$new_sections" ]]; then
+    echo ""
+    echo "  $label — new template sections you may want to merge in by hand:"
+    echo "$new_sections" | sed 's/^/    /'
+  fi
+}
+
+template_diff_report "$SRC/templates/CLAUDE.md.template" "$TARGET/CLAUDE.md" "CLAUDE.md"
+template_diff_report "$SRC/templates/CONTEXT.md.template" "$TARGET/CONTEXT.md" "CONTEXT.md"
+
+echo ""
+echo "✓ Updated."
+echo "  WORKFLOW.md, .claude/skills/, .claude/hooks/ overwritten."
+echo "  CLAUDE.md, CONTEXT.md, .claude/plans/, .claude/screenshots/ untouched."
+echo ""

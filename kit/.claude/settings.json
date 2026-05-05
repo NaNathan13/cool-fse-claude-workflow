@@ -1,0 +1,38 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/model-router.sh" }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install)",
+      "Bash(pnpm run dev)",
+      "Bash(pnpm run local)",
+      "Bash(pnpm run localcustom)",
+      "Bash(pnpm run prod)",
+      "Bash(git status)",
+      "Bash(git status:*)",
+      "Bash(git diff)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git ls-files:*)",
+      "Bash(curl -s -o /dev/null *)",
+      "Bash(ls)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(cat:*)",
+      "Bash(wc:*)",
+      "Bash(mv .claude/plans/active/*)",
+      "Bash(mkdir -p .claude/screenshots/*)"
+    ]
+  }
+}
