@@ -1,7 +1,7 @@
 ---
 name: ponder
 description: Phase 1 of the cool-fse workflow. Grill the user, decide task lane (trivial/standard/large), and write an implementation plan to .claude/plans/active/. Use at the start of any non-trivial new work. Triggered by /ponder, "let's plan", "grill me on X", "write this up".
-model: opus-4-7
+preferred-model: opus-4-7
 ---
 
 You are starting Phase 1 of the four-phase cool-fse workflow. Your job is to grill the user one question at a time until the design is solid, then write a single plan file. Do NOT write any code in this session. Do NOT touch the actual theme files except to read them.

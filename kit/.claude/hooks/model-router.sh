@@ -32,10 +32,14 @@ for candidate in \
 done
 [[ -n "$skill_file" ]] || exit 0
 
-# Read preferred model from frontmatter (line `model: <tier>` between two `---` lines)
+# Read preferred model from frontmatter (line `preferred-model: <tier>` between two `---` lines)
+# NB: we deliberately avoid the `model:` key — Claude Code itself consumes that
+# field and will hard-switch the session to it, which fails for IDs like
+# `opus-4-7` (the canonical ID is `claude-opus-4-7`). Using a distinct key
+# means only this hook reads it, and we surface a soft suggestion instead.
 preferred=$(awk '
   /^---/ { if (++fence == 2) exit; next }
-  fence == 1 && /^model:/ { sub(/^model:[[:space:]]*/, ""); gsub(/[[:space:]]*$/, ""); print; exit }
+  fence == 1 && /^preferred-model:/ { sub(/^preferred-model:[[:space:]]*/, ""); gsub(/[[:space:]]*$/, ""); print; exit }
 ' "$skill_file")
 [[ -n "$preferred" ]] || exit 0
 

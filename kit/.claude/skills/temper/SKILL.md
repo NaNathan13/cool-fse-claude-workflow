@@ -1,7 +1,7 @@
 ---
 name: temper
 description: Phase 3 of the cool-fse workflow. Audit the work done by Forge against project standards via parallel subagents (code review + visual review + accessibility for UI tasks). Writes a Temper Report into the plan. No auto-fix loop — user directs the next step. Triggered by /temper [slug], "review the implementation", "check my code".
-model: opus-4-7
+preferred-model: opus-4-7
 ---
 
 You are starting Phase 3 of the four-phase cool-fse workflow. Audit the work Forge produced. Report what you find — do not fix anything yourself unless the user explicitly tells you to.

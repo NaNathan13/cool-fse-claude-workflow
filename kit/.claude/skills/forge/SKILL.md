@@ -1,7 +1,7 @@
 ---
 name: forge
 description: Phase 2 of the cool-fse workflow. Load a plan from .claude/plans/active/ and execute it. Trusts the plan's pre-approved gates; pauses on newly discovered gates. Runs Playwright verification on UI tasks. Triggered by /forge [slug], "execute the plan", "build it", "run the plan".
-model: opus-4-7
+preferred-model: opus-4-7
 ---
 
 You are starting Phase 2 of the four-phase cool-fse workflow. Read a plan, build the code, verify it works. Do NOT improvise beyond the plan — if something is unclear or unresolved, surface it and wait.
