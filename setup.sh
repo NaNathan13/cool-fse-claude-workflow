@@ -151,17 +151,32 @@ if [[ "$MODE" == "install" ]]; then
   prompt local_url    "Local URL" "$default_url" "LOCAL_URL"
   prompt local_port   "Local proxy port" "10000" "LOCAL_PORT"
 
-  # Render CLAUDE.md
-  sed \
-    -e "s|{{PROJECT_NAME}}|${project_name}|g" \
-    -e "s|{{CHILD_THEME_DIR}}|${child_dir}|g" \
-    -e "s|{{LOCAL_URL}}|${local_url}|g" \
-    -e "s|{{LOCAL_PORT}}|${local_port}|g" \
-    "$SRC/templates/CLAUDE.md.template" > "$TARGET/CLAUDE.md"
-  echo "  → wrote CLAUDE.md"
+  # Render CLAUDE.md — skip if it already exists (don't clobber hand-edited content)
+  if [[ -f "$TARGET/CLAUDE.md" ]]; then
+    echo "  → CLAUDE.md exists, skipping (rendered template at $TARGET/CLAUDE.md.template-rendered for reference)"
+    sed \
+      -e "s|{{PROJECT_NAME}}|${project_name}|g" \
+      -e "s|{{CHILD_THEME_DIR}}|${child_dir}|g" \
+      -e "s|{{LOCAL_URL}}|${local_url}|g" \
+      -e "s|{{LOCAL_PORT}}|${local_port}|g" \
+      "$SRC/templates/CLAUDE.md.template" > "$TARGET/CLAUDE.md.template-rendered"
+  else
+    sed \
+      -e "s|{{PROJECT_NAME}}|${project_name}|g" \
+      -e "s|{{CHILD_THEME_DIR}}|${child_dir}|g" \
+      -e "s|{{LOCAL_URL}}|${local_url}|g" \
+      -e "s|{{LOCAL_PORT}}|${local_port}|g" \
+      "$SRC/templates/CLAUDE.md.template" > "$TARGET/CLAUDE.md"
+    echo "  → wrote CLAUDE.md"
+  fi
 
-  cp "$SRC/templates/CONTEXT.md.template" "$TARGET/CONTEXT.md"
-  echo "  → wrote CONTEXT.md"
+  if [[ -f "$TARGET/CONTEXT.md" ]]; then
+    echo "  → CONTEXT.md exists, skipping (template at $TARGET/CONTEXT.md.template-shipped for reference)"
+    cp "$SRC/templates/CONTEXT.md.template" "$TARGET/CONTEXT.md.template-shipped"
+  else
+    cp "$SRC/templates/CONTEXT.md.template" "$TARGET/CONTEXT.md"
+    echo "  → wrote CONTEXT.md"
+  fi
 
   echo ""
   echo "✓ Installed."
