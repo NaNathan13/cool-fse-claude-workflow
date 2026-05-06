@@ -142,12 +142,15 @@ The hook is advisory. Override with `/model <tier>` if you want.
 | Command | Phase | Run when |
 |---|---|---|
 | `/ponder` | 1 | Starting any non-trivial work |
-| `/grill-me` | sub-skill of Ponder | Auto-invoked; you can also use it stand-alone |
+| `/grill-me` | sub-skill of Ponder | Auto-invoked for the interview; you can also use it stand-alone |
+| `/inscribe` | sub-skill of Ponder | Auto-invoked after grilling to write the plan file; callable stand-alone when decisions are already resolved |
 | `/forge [slug]` | 2 | Fresh session, plan exists in `active/` |
 | `/temper [slug]` | 3 | Fresh session, Forge handed off |
 | `/seal [slug]` | 4 | Fresh session, Temper handed off (or you've decided to skip Temper) |
 
 `/grill-me` is **upstream** — comes from the Pocock skills library (`mattpocock/skills`). Install separately: `~/.claude/skills/grill-me/SKILL.md` or via the plugin. If you don't have it, Ponder falls back to plain-text grilling.
+
+`/inscribe` lives in `.claude/skills/inscribe/SKILL.md` and is part of this kit.
 
 ## Worked examples
 

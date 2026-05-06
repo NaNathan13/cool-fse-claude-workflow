@@ -73,70 +73,12 @@ Use AskUserQuestion. If "more to grill", continue. If "write", proceed.
 
 ### 7. Write the plan
 
-Auto-generate a kebab-case slug from the task name (e.g., "testimonial slider" → `testimonial-slider`). Save to `.claude/plans/active/<slug>.md`.
+Invoke `/inscribe` — it owns the plan-writing step. Pass all resolved decisions from the grill as context. `/inscribe` will:
+- Determine the slug and lane
+- Write `.claude/plans/active/<slug>.md` using the standard template
+- Hand off to Forge
 
-Use exactly this structure (per `WORKFLOW.md`):
-
-```markdown
-# <Plan Title>
-
-**Status:** in-progress
-**Lane:** standard | large
-**Source:** Grill session <today's date>
-
-## TL;DR
-<One paragraph.>
-
-## What We're Building
-<Editor POV + visitor POV.>
-
-## Design Decisions
-1. <decision> — <rationale>
-2. ...
-
-## Approval Gates (pre-approved)
-- <gate, if any>
-
-## Files to Create / Modify
-**Create:**
-- [ ] `<child-theme>/blocks/gutenberg/<name>/<name>-block.json`
-- [ ] ...
-
-**Modify:**
-- [ ] `<child-theme>/acf-json/<group>.json`
-- [ ] ...
-
-## Approach
-<Per-file or per-step prose. Concrete file names, real utility classes,
-real field keys, real custom element tags.>
-
-## Visual Reference
-<Links / paths.>
-
-## Out of Scope
-- ...
-
-## Verification
-<Browser steps for UI / functional steps for non-UI / Playwright assertions
-for Forge to run.>
-
-## Slices  *(large lane only)*
-1. <slice 1 — independently buildable>
-2. ...
-
-## Open Questions
-<Empty unless something genuinely unresolved. Forge will pause on these.>
-```
-
-Save with the Write tool. Do not commit.
-
-### 8. Hand off
-
-Tell the user:
-
-> Plan saved to `.claude/plans/active/<slug>.md`. Run `/forge <slug>` in a **fresh session**.
-
-End the session. Do not continue into Forge yourself.
+Do not write the plan yourself. Do not continue into Forge after `/inscribe` completes.
 
 ## Conventions
 

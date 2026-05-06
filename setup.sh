@@ -87,7 +87,7 @@ cp "$SRC/kit/WORKFLOW.md" "$TARGET/WORKFLOW.md"
 
 echo "→ copying .claude/skills"
 mkdir -p "$TARGET/.claude/skills"
-rm -rf "$TARGET/.claude/skills/ponder" "$TARGET/.claude/skills/forge" "$TARGET/.claude/skills/temper" "$TARGET/.claude/skills/seal"
+rm -rf "$TARGET/.claude/skills/ponder" "$TARGET/.claude/skills/forge" "$TARGET/.claude/skills/temper" "$TARGET/.claude/skills/seal" "$TARGET/.claude/skills/inscribe"
 cp -R "$SRC/kit/.claude/skills/." "$TARGET/.claude/skills/"
 
 echo "→ copying .claude/hooks"
