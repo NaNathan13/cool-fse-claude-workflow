@@ -31,9 +31,9 @@ Also read:
 
 Do not skip this step.
 
-### 3. Set status
+### 3. Confirm status
 
-Edit the plan: flip `Status:` from `in-progress` (set by Ponder) to `in-progress` if it isn't already. (Yes — Ponder sets it; you confirm and own it from here.)
+The plan's `Status:` should already read `in-progress` (Inscribe sets it). Confirm. If it reads `done`, stop and ask the user — this plan was already sealed and you may be on the wrong slug.
 
 ### 4. Surface unresolved blockers
 
@@ -41,7 +41,7 @@ If the plan has an `## Open Questions` section with unresolved items, raise them
 
 ### 5. Verify dev server reachable (UI tasks only)
 
-Pull the local URL from `CLAUDE.md` (e.g., `http://perry-hotel.local/`). Try:
+Pull the local URL from `CLAUDE.md` (e.g., `http://my-site.local/`). Try:
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}" <LOCAL_URL>

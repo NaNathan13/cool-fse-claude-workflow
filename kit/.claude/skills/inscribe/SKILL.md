@@ -88,9 +88,21 @@ listed here. Ideally empty.
 
 ## Step 4 — Hand off
 
-Output exactly:
+Output the hand-off block below verbatim, with `<slug>` filled in. The fenced prompt is meant to be copy-pasted into a fresh Claude Code session to start Forge cleanly.
 
-> Plan saved to `.claude/plans/active/<slug>.md`. Run `/forge <slug>` in a **fresh session**.
+> Plan saved to `.claude/plans/active/<slug>.md`.
+>
+> Open a **fresh Claude Code session** at the themes root and paste this prompt to begin Forge:
+>
+> ````
+> /forge <slug>
+>
+> Read .claude/plans/active/<slug>.md, WORKFLOW.md, and CLAUDE.md before touching
+> any code. Trust the plan's pre-approved Approval Gates — do not re-prompt on
+> them. Pause if you discover a gate the plan didn't authorize, or if the dev
+> server isn't reachable. Verify per the plan's Verification section when done,
+> then append the "Forge complete <date>" handoff line.
+> ````
 
 Then stop. Do not continue into Forge. Do not make any code changes.
 

@@ -2,7 +2,7 @@
 
 A drop-in AI workflow kit for [cool-fse](https://github.com/) based WordPress child-theme projects.
 
-Installs alongside the parent + child themes inside `wp-content/themes/` and gives any project four phase commands:
+Installs alongside the `cool-fse` parent theme and your child theme inside `wp-content/themes/` and gives any project four phase commands:
 
 - `/ponder` — grill out the design, pick a lane, write a plan
 - `/forge` — execute the plan, run Playwright on UI tasks, pause on new approval gates
@@ -23,8 +23,29 @@ The installer:
 
 1. Verifies you're in a `wp-content/themes/` dir (must contain `cool-fse/` and at least one other theme dir)
 2. Copies `WORKFLOW.md`, `.claude/skills/*`, `.claude/hooks/*`, `.claude/settings.json`, and the empty `.claude/plans/{active,done}/` + `.claude/screenshots/` directories
-3. Asks for project name, child theme dir, local URL, local port — and renders `CLAUDE.md` + `CONTEXT.md` from templates
+3. Asks for project name, child theme dir, and local URL — and renders `CLAUDE.md` + `CONTEXT.md` from templates (local proxy port defaults to `10000`; edit `CLAUDE.md` later if your stack differs)
 4. Drops `.claude/scripts/update.sh` so you can re-run later in update mode
+
+## First-run AI setup prompt
+
+After installing, paste this into a fresh Claude Code session at the themes root. It walks you through setup as an interactive Q&A using the `AskUserQuestion` UI — one question at a time, with sensible defaults you can accept by hitting enter:
+
+```
+You're being run inside a freshly-installed cool-fse-claude-workflow kit. Read
+WORKFLOW.md and CLAUDE.md so the methodology and project context are loaded,
+then use AskUserQuestion (single question per turn, "Other (describe)" always
+available) to confirm just two things:
+
+1. Project basics — for each placeholder the installer rendered (project name,
+   child theme dir), ask "looks right?" with the rendered value as the default.
+   Patch CLAUDE.md only when I say it's wrong.
+
+2. Local URL — ask me for the local site URL, defaulting to whatever's in
+   CLAUDE.md. Patch CLAUDE.md if I give a different one.
+
+Then stop. Don't infer anything else, don't seed the glossary, don't start
+/ponder.
+```
 
 ## Update
 
@@ -45,9 +66,9 @@ Update mode overwrites project-agnostic files (`WORKFLOW.md`, skills, hooks) and
 
 ## Why this exists
 
-Built to standardize the way I work on the [perry-hotel](https://) child theme and the broader hotel-suite that builds on top of it. Hand-rolled `grill-to-imp` / `execute-imp` / `review-imp` skills got the job done but weren't quite right — too coupled to one project, no clean separation between "plan" and "build" sessions, no place for visual review or a11y.
+Working on cool-fse child themes with hand-rolled `grill-to-imp` / `execute-imp` / `review-imp` skills got the job done but wasn't quite right — too coupled to whichever project they were originally written for, no clean separation between "plan" and "build" sessions, no place for visual review or a11y.
 
-This kit refines that into four phases modeled after the Pocock-style workflow used in `plant-pal-v4`, but stripped of GitHub issues, mission-control, tests, and CI — none of which fit a static-site WP theme.
+This kit refines that into four phases modeled after the Pocock-style workflow, but stripped of GitHub issues, mission-control, tests, and CI — none of which fit a static-site WP theme.
 
 ## License
 

@@ -6,7 +6,7 @@ Why the kit is shaped the way it is. Condensed from the grill session that produ
 
 A flat `grill-to-imp` / `execute-imp` / `review-imp` chain that worked but wasn't quite right:
 
-- The old skills were tightly coupled to perry-hotel — terms, file paths, conventions hard-coded into prose
+- The old skills were tightly coupled to one specific child theme — terms, file paths, conventions hard-coded into prose
 - "Plan written" and "plan executed" lived in the same session, blurring the handoff
 - No place for visual review, no place for accessibility audit
 - No model routing — Opus everywhere, including mechanical text/git work

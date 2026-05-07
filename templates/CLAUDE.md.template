@@ -13,7 +13,7 @@ Entry point for Claude Code on the **{{PROJECT_NAME}}** project. Read this once 
 
 ## Local development
 
-- **Local site URL**: `{{LOCAL_URL}}` (Local by Flywheel)
+- **Local site URL**: `{{LOCAL_URL}}` (typically Local by Flywheel; update if you use a different stack)
 - **Proxy port**: `{{LOCAL_PORT}}`
 - The `pnpm run local` command proxies `http://localhost:{{LOCAL_PORT}}` — use `pnpm run localcustom` to use the `.local` URL instead, or update `PROXY_URL` in `package.json`
 

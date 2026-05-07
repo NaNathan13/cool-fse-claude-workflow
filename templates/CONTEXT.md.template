@@ -40,7 +40,7 @@ _Avoid:_ "widget", "shortcode" (different concepts).
 
 ### Child theme
 
-The project-specific theme directory (e.g., `perry-hotel/`). All project work lives here. Mirrors parent paths to override.
+The project-specific theme directory (e.g., `my-site/`). All project work lives here. Mirrors parent paths to override.
 
 ### Field group
 

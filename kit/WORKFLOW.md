@@ -115,7 +115,7 @@ Standard gates:
 
 | Gate | Why it matters |
 |---|---|
-| Touches `cool-fse/` (parent theme) | Parent is shared across the hotel suite. Changes affect every site. |
+| Touches `cool-fse/` (parent theme) | Parent is shared across every project that builds on it. Changes affect every site. |
 | New block-level CSS | Utility-class first is the rule. New CSS implies the utility list is missing something. |
 | ACF JSON hand-edits | Normally edited via WP Admin → JSON auto-syncs. Hand-editing risks key collisions. |
 | New section in `index.php` (or any FSE template) | Changes the page composition. Confirm placement first. |
@@ -159,7 +159,7 @@ The hook is advisory. Override with `/model <tier>` if you want.
 ```
 You: change "© 2024" to "© 2026" in the footer
 Claude: Trivial — making the change.
-       [edits perry-hotel/blocks/gutenberg/main-footer/main-footer.php]
+       [edits <child-theme>/blocks/gutenberg/main-footer/main-footer.php]
        Done. Commit when ready.
 ```
 

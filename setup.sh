@@ -128,6 +128,11 @@ mkdir -p "$TARGET/.claude/plans/active" "$TARGET/.claude/plans/done" "$TARGET/.c
 [[ -f "$TARGET/.claude/plans/done/.gitkeep" ]] || touch "$TARGET/.claude/plans/done/.gitkeep"
 [[ -f "$TARGET/.claude/screenshots/.gitkeep" ]] || touch "$TARGET/.claude/screenshots/.gitkeep"
 
+# Drop the shipped example plan into done/ on first install only
+if [[ "$MODE" == "install" && -f "$SRC/kit/.claude/plans/done/EXAMPLE-testimonial-slider.md" ]]; then
+  cp "$SRC/kit/.claude/plans/done/EXAMPLE-testimonial-slider.md" "$TARGET/.claude/plans/done/"
+fi
+
 # update.sh helper
 mkdir -p "$TARGET/.claude/scripts"
 cat > "$TARGET/.claude/scripts/update.sh" <<'EOF'
@@ -145,11 +150,13 @@ if [[ "$MODE" == "install" ]]; then
   # Suggest first child theme as default
   default_child="${child_candidates[0]}"
 
-  prompt project_name "Project name (e.g. \"Perry Hotel\")" "My Project" "PROJECT_NAME"
+  prompt project_name "Project name (e.g. \"Acme Site\")" "My Project" "PROJECT_NAME"
   prompt child_dir    "Child theme directory" "$default_child" "CHILD_THEME_DIR"
   default_url="http://${child_dir}.local/"
   prompt local_url    "Local URL" "$default_url" "LOCAL_URL"
-  prompt local_port   "Local proxy port" "10000" "LOCAL_PORT"
+  # Local proxy port is hardcoded to 10000 (BrowserSync default for cool-fse).
+  # Edit CLAUDE.md after install if your stack uses something else.
+  local_port="${LOCAL_PORT:-10000}"
 
   # Render CLAUDE.md — skip if it already exists (don't clobber hand-edited content)
   if [[ -f "$TARGET/CLAUDE.md" ]]; then
