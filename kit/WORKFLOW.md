@@ -152,6 +152,24 @@ The hook is advisory. Override with `/model <tier>` if you want.
 
 `/inscribe` lives in `.claude/skills/inscribe/SKILL.md` and is part of this kit.
 
+## Sub-skills and subagents per phase
+
+Each top-level phase invokes other skills and/or parallel subagents under the hood. Knowing the breakdown helps when something goes sideways — you can re-run a piece in isolation rather than restarting the whole phase.
+
+| Phase | Calls (skills) | Dispatches (subagents) | Notes |
+|---|---|---|---|
+| **Ponder** | `/grill-me` (upstream), `/inscribe` (in-kit) | — | Grill-me runs the interview; Inscribe writes the plan file. Both are callable stand-alone if you've already done the other half. |
+| **Forge** | — | — | No sub-skills. Uses Read / Edit / Write / Bash / Playwright directly. The plan is the contract. |
+| **Temper** | — | `feature-dev:code-reviewer` (always), `general-purpose` w/ Playwright (UI tasks), `general-purpose` for a11y (UI tasks) | All three subagents dispatched in **a single message** so they run in parallel. Temper merges their outputs into the Temper Report. |
+| **Seal** | — | — | Pure mechanical work: read diff + plan, draft commit message, archive plan. No skills, no subagents. |
+
+**Re-running pieces in isolation:**
+
+- Plan came out wrong but the grill was fine → call `/inscribe` directly and feed it the resolved decisions.
+- Want a quick second-pass interview without the planning step → call `/grill-me` directly.
+- Temper missed something on one axis (e.g., visual review was off) → re-dispatch just that subagent manually rather than running `/temper` again.
+- Seal drafted a commit message you don't like → re-run `/seal` on the same slug; it'll re-read the diff and redraft.
+
 ## Worked examples
 
 ### Trivial — change the footer copyright year
