@@ -50,6 +50,12 @@ An ACF field group, defined as JSON in `acf-json/`. **Always** edited via the JS
 
 The synced JSON files in `<child-theme>/acf-json/`. Source of truth for ACF field definitions.
 
+### ACF field key convention
+
+Field keys use `field_<group_slug>_<field_name>` format (e.g., `field_testimonial_slider_quote`, `field_testimonial_slider_author_name`). Group keys use `group_<block_slug>` (e.g., `group_testimonial_slider`). All `snake_case`. The group slug namespaces the keys, preventing collisions across blocks.
+
+_Avoid:_ short keys like `field_quote` — they collide when multiple blocks have similarly-named fields.
+
 ### Wrapper attributes
 
 The `get_wrapper_attributes()` helper that applies ACF-controlled wrapper width/padding settings.

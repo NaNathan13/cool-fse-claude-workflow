@@ -43,7 +43,7 @@ Send all applicable subagents in a single message (multiple Agent tool calls).
 
 #### Subagent 1 — Code Review (always)
 
-Use the `feature-dev:code-reviewer` agent or `general-purpose` if not available. Brief it with:
+Use `feature-dev:code-reviewer` as the subagent type. If the Agent tool returns an error for that type, retry with `general-purpose`. Brief it with:
 
 - The plan's "Files to Create / Modify"
 - The actual diff

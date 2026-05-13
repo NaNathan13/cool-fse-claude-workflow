@@ -72,10 +72,15 @@ Paths to .claude/design-references/ screenshots, Figma links, or "waived".
 ## Out of Scope
 Things that came up but are not being built in this pass.
 
-## Verification
-What to check after building. For UI: page URL, interactions to verify
-during human review. For non-UI: functional assertions Forge can confirm
-(e.g., page loads, no PHP fatals).
+## Verification — Human Review Checklist
+Page URL: <local URL for this block>
+
+- [ ] Block renders correctly in the editor (preview mode)
+- [ ] Block renders on the front end (matches editor)
+- [ ] Block with empty/partial field data (no PHP errors, graceful fallback)
+- [ ] Block on a light background and a dark background
+- [ ] Mobile viewport (375px)
+- [ ] <block-specific interactions — Inscribe fills these in per-plan>
 
 ## Slices  *(large lane only — omit for standard)*
 1. <slice 1 — independently buildable>
@@ -108,6 +113,7 @@ Then stop. Do not continue into Forge. Do not make any code changes.
 
 ## Conventions
 
+- **ACF field keys must follow the naming convention defined in CONTEXT.md.**
 - **Concrete, not hand-wavy.** If an ACF field key isn't decided, decide it now and write it down.
 - **Every approval gate named.** Forge should never discover a gate mid-build that the plan didn't pre-authorize.
 - **Utility-class first.** If the approach section mentions CSS, confirm utilities can't cover it first.

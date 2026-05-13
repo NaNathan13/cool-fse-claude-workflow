@@ -28,20 +28,14 @@ The installer:
 
 ## First-run AI setup prompt
 
-After installing, paste this into a fresh Claude Code session at the themes root. It walks you through setup as an interactive Q&A using the `AskUserQuestion` UI — one question at a time, with sensible defaults you can accept by hitting enter:
+After installing, paste this into a fresh Claude Code session at the themes root. It confirms the values the installer rendered into CLAUDE.md (project name, child theme dir, local URL) so you can catch any typos before starting work:
 
 ```
 You're being run inside a freshly-installed cool-fse-claude-workflow kit. Read
 WORKFLOW.md and CLAUDE.md so the methodology and project context are loaded,
-then use AskUserQuestion (single question per turn, "Other (describe)" always
-available) to confirm just two things:
-
-1. Project basics — for each placeholder the installer rendered (project name,
-   child theme dir), ask "looks right?" with the rendered value as the default.
-   Patch CLAUDE.md only when I say it's wrong.
-
-2. Local URL — ask me for the local site URL, defaulting to whatever's in
-   CLAUDE.md. Patch CLAUDE.md if I give a different one.
+then use AskUserQuestion to confirm: "Does CLAUDE.md look correct?" — show
+the rendered project name, child theme dir, and local URL. Patch CLAUDE.md
+only if I say something is wrong.
 
 Then stop. Don't infer anything else, don't seed the glossary, don't start
 /ponder.
