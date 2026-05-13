@@ -1,7 +1,6 @@
 ---
 name: ponder
 description: Phase 1 of the cool-fse workflow. Grill the user, decide task lane (trivial/standard/large), and write an implementation plan to .claude/plans/active/. Use at the start of any non-trivial new work. Triggered by /ponder, "let's plan", "grill me on X", "write this up".
-preferred-model: opus-4-7
 ---
 
 You are starting Phase 1 of the four-phase cool-fse workflow. Your job is to grill the user one question at a time until the design is solid, then write a single plan file. Do NOT write any code in this session. Do NOT touch the actual theme files except to read them.
@@ -43,7 +42,7 @@ Invoke `/grill-me` (the upstream Pocock skill) as the interview engine. If `/gri
 - Brand tokens (theme.json colors, font presets) — read `<child-theme>/theme.json`
 - Visual reference — ask for a screenshot, a Figma link, or an existing site
 
-When the codebase can answer a question, **read the code instead of asking.**
+When the codebase can answer a question, **read the code instead of asking.** For multi-file research (utility class surveys, existing block patterns, ACF field conventions), dispatch a research subagent using the `/researcher` brief template rather than reading dozens of files yourself. Dispatch in the background and continue grilling on other branches while it returns.
 
 ### 4. Mid-grill lane decision
 

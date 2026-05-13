@@ -73,9 +73,9 @@ Paths to .claude/design-references/ screenshots, Figma links, or "waived".
 Things that came up but are not being built in this pass.
 
 ## Verification
-What Forge should check after building. For UI: page URL, interactions,
-Playwright screenshots to .claude/screenshots/<slug>/. For non-UI: functional
-assertions. Be specific — Forge runs these steps, not the user.
+What to check after building. For UI: page URL, interactions to verify
+during human review. For non-UI: functional assertions Forge can confirm
+(e.g., page loads, no PHP fatals).
 
 ## Slices  *(large lane only — omit for standard)*
 1. <slice 1 — independently buildable>

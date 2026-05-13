@@ -1,7 +1,6 @@
 ---
 name: forge
-description: Phase 2 of the cool-fse workflow. Load a plan from .claude/plans/active/ and execute it. Trusts the plan's pre-approved gates; pauses on newly discovered gates. Runs Playwright verification on UI tasks. Triggered by /forge [slug], "execute the plan", "build it", "run the plan".
-preferred-model: opus-4-7
+description: Phase 2 of the cool-fse workflow. Load a plan from .claude/plans/active/ and execute it. Trusts the plan's pre-approved gates; pauses on newly discovered gates. Triggered by /forge [slug], "execute the plan", "build it", "run the plan".
 ---
 
 You are starting Phase 2 of the four-phase cool-fse workflow. Read a plan, build the code, verify it works. Do NOT improvise beyond the plan — if something is unclear or unresolved, surface it and wait.
@@ -28,6 +27,8 @@ Also read:
 - Custom elements in `cool-fse/blocks/global/js/custom-elements/` for any interactive behavior
 - `<child-theme>/theme.json` for color/font/spacing presets the plan references
 - 1–2 existing similar blocks in `<child-theme>/blocks/gutenberg/` to match the local style
+
+For broad surveys (e.g., "which blocks use this pattern?", "does this utility class exist?"), dispatch a research subagent using the `/researcher` brief template rather than reading every file yourself.
 
 Do not skip this step.
 
@@ -92,23 +93,12 @@ If during the build you realize:
 - **No `var_dump`, `print_r`, `console.log`** left in.
 - **Escaping**: `esc_html`, `esc_url`, `esc_attr` on output; raw echo only for ACF wysiwyg fields.
 
-### 10. Visual verification (UI tasks)
-
-Run Playwright per the plan's "Verification" section. Save screenshots to `.claude/screenshots/<slug>/`. Naming is functional, not chronological:
-
-- `before-<state>.png` / `after-<state>.png` for diffs against an existing screen
-- `<gesture>-active.png` for interactive states (e.g., `slider-hover-active.png`)
-- `mobile-<state>.png` / `desktop-<state>.png` when breakpoint matters
-
-Take a screenshot for every state listed in the plan's verification section. If a state can't be reached, note it in the handoff line and move on — don't fake it.
-
-### 11. Build sanity
+### 10. Build sanity
 
 - No PHP fatals on the affected page (`curl -s -o /dev/null -w "%{http_code}" <LOCAL_URL>/<page>` should return 200)
 - esbuild/SASS error log is clean (assume the user is watching `pnpm run local` and will report otherwise)
-- No console errors in the Playwright session
 
-### 12. Hand off
+### 11. Hand off
 
 Append to the plan, at the bottom:
 
@@ -121,7 +111,7 @@ Append to the plan, at the bottom:
 
 Tell the user:
 
-> Forge complete. Run `/temper <slug>` in a **fresh session**.
+> Forge complete. Review the changes in the browser (WP Admin, front end, test interactions), then run `/temper <slug>` in a **fresh session**.
 
 End the session. Do not continue into Temper yourself.
 

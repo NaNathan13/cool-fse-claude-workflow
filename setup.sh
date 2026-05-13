@@ -87,13 +87,8 @@ cp "$SRC/kit/WORKFLOW.md" "$TARGET/WORKFLOW.md"
 
 echo "→ copying .claude/skills"
 mkdir -p "$TARGET/.claude/skills"
-rm -rf "$TARGET/.claude/skills/ponder" "$TARGET/.claude/skills/forge" "$TARGET/.claude/skills/temper" "$TARGET/.claude/skills/seal" "$TARGET/.claude/skills/inscribe"
+rm -rf "$TARGET/.claude/skills/ponder" "$TARGET/.claude/skills/forge" "$TARGET/.claude/skills/temper" "$TARGET/.claude/skills/seal" "$TARGET/.claude/skills/inscribe" "$TARGET/.claude/skills/scrub" "$TARGET/.claude/skills/researcher"
 cp -R "$SRC/kit/.claude/skills/." "$TARGET/.claude/skills/"
-
-echo "→ copying .claude/hooks"
-mkdir -p "$TARGET/.claude/hooks"
-cp "$SRC/kit/.claude/hooks/model-router.sh" "$TARGET/.claude/hooks/model-router.sh"
-chmod +x "$TARGET/.claude/hooks/model-router.sh"
 
 # settings.json — copy on install, diff-prompt on update
 if [[ "$MODE" == "install" ]]; then
@@ -189,10 +184,10 @@ if [[ "$MODE" == "install" ]]; then
   echo "✓ Installed."
   echo ""
   echo "  Next steps:"
-  echo "  1. Open WORKFLOW.md and skim it once."
-  echo "  2. Make sure the upstream /grill-me skill is installed (Pocock skills library)."
-  echo "  3. Start a new Claude Code session here: cd $TARGET && claude"
-  echo "  4. Try /ponder on your first task."
+  echo "  1. Start a new Claude Code session here: cd $TARGET && claude"
+  echo "  2. Run /scrub to replace placeholders and delete stock files."
+  echo "  3. Make sure the upstream /grill-me skill is installed (Pocock skills library)."
+  echo "  4. Skim WORKFLOW.md once, then try /ponder on your first task."
   echo ""
   exit 0
 fi
@@ -231,6 +226,6 @@ template_diff_report "$SRC/templates/CONTEXT.md.template" "$TARGET/CONTEXT.md" "
 
 echo ""
 echo "✓ Updated."
-echo "  WORKFLOW.md, .claude/skills/, .claude/hooks/ overwritten."
+echo "  WORKFLOW.md, .claude/skills/ overwritten."
 echo "  CLAUDE.md, CONTEXT.md, .claude/plans/, .claude/screenshots/ untouched."
 echo ""

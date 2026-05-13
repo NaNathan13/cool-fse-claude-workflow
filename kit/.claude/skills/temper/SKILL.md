@@ -1,7 +1,6 @@
 ---
 name: temper
-description: Phase 3 of the cool-fse workflow. Audit the work done by Forge against project standards via parallel subagents (code review + visual review + accessibility for UI tasks). Writes a Temper Report into the plan. No auto-fix loop — user directs the next step. Triggered by /temper [slug], "review the implementation", "check my code".
-preferred-model: opus-4-7
+description: "Phase 3 of the cool-fse workflow. Audit the work done by Forge against project standards. Default: code review only. Pass --visual for visual + a11y subagents too. Writes a Temper Report into the plan. No auto-fix loop — user directs the next step. Triggered by /temper [slug] [--visual], \"review the implementation\", \"check my code\"."
 ---
 
 You are starting Phase 3 of the four-phase cool-fse workflow. Audit the work Forge produced. Report what you find — do not fix anything yourself unless the user explicitly tells you to.
@@ -31,9 +30,16 @@ Cross-reference with the plan's "Files to Create / Modify". Anything in the diff
 
 Read every file in scope fully. Also read 1–2 existing similar blocks in `<child-theme>/blocks/gutenberg/` to judge fit, and the relevant utility CSS files in `cool-fse/blocks/global/css/`.
 
-### 3. Dispatch parallel subagents
+### 3. Parse flags
 
-Send all subagents in a single message (multiple Agent tool calls).
+Check if `--visual` was passed as an argument (e.g., `/temper testimonial-slider --visual`).
+
+- **Without `--visual` (default):** dispatch the code review subagent only. The user is the visual reviewer.
+- **With `--visual`:** dispatch all three subagents (code review + visual + a11y) in a single message.
+
+### 4. Dispatch subagents
+
+Send all applicable subagents in a single message (multiple Agent tool calls).
 
 #### Subagent 1 — Code Review (always)
 
@@ -85,7 +91,9 @@ Files in the diff not in the plan = flag, may be **suggested** or **blocking** d
 
 Subagent should categorize each finding as **blocking** (must fix before Seal), **suggested** (worth fixing), or **nit** (cosmetic). Output: a list of findings with `file:line` references and concrete proposed fixes.
 
-#### Subagent 2 — Visual Review (UI tasks only)
+#### Subagent 2 — Visual Review (`--visual` only)
+
+Skip this subagent unless `--visual` was passed.
 
 Use Playwright (or the `general-purpose` agent with Playwright access). Brief it with:
 
@@ -102,7 +110,9 @@ Have it:
 
 Output: list of visual findings with screenshot paths.
 
-#### Subagent 3 — Accessibility (UI tasks only)
+#### Subagent 3 — Accessibility (`--visual` only)
+
+Skip this subagent unless `--visual` was passed.
 
 Use the `general-purpose` agent. Brief it with the same scope. Run these checks:
 
@@ -117,9 +127,9 @@ Use the `general-purpose` agent. Brief it with the same scope. Run these checks:
 
 Output: a list of suggestions. **Accessibility findings are never blocking.** They go in their own subsection of the report (`### Accessibility — suggestions only`).
 
-### 4. Merge findings
+### 5. Merge findings
 
-Combine the three subagent outputs into a single Temper Report. Categorize:
+Combine subagent outputs into a single Temper Report. Categorize:
 
 - **Blocking** — must fix before Seal (unauthorized parent edits, missing required PHP helpers, broken visual states, scope drift that changes intent)
 - **Suggested** — worth fixing (CSS that should be utility classes, missing escaping, naming inconsistencies)
@@ -128,7 +138,7 @@ Combine the three subagent outputs into a single Temper Report. Categorize:
 
 Within each category, sort by impact.
 
-### 5. Write the report
+### 6. Write the report
 
 Append to the plan file, at the bottom:
 
@@ -158,6 +168,7 @@ needs rework before commit>.
 2. ...
 
 ### Visual review
+*(omit this section if `--visual` was not passed)*
 - Screenshots: `.claude/screenshots/<slug>/temper-*.png`
 - <findings, if any>
 
@@ -170,7 +181,7 @@ needs rework before commit>.
 
 If a category has no items, write `_None._` under it.
 
-### 6. Hand off
+### 7. Hand off
 
 Tell the user:
 

@@ -1,7 +1,6 @@
 ---
 name: seal
 description: Phase 4 of the cool-fse workflow. Drafts a commit message based on the plan + diff, marks the plan done, and moves it to .claude/plans/done/. Never runs git commit — user owns commits. Triggered by /seal [slug], "wrap it up", "seal it".
-preferred-model: sonnet
 ---
 
 You are starting Phase 4 of the four-phase cool-fse workflow. Mechanical work: draft a commit message, archive the plan. **You never run `git commit`.** That's the user's job.
