@@ -9,7 +9,6 @@ A flat `grill-to-imp` / `execute-imp` / `review-imp` chain that worked but wasn'
 - The old skills were tightly coupled to one specific child theme — terms, file paths, conventions hard-coded into prose
 - "Plan written" and "plan executed" lived in the same session, blurring the handoff
 - No place for visual review, no place for accessibility audit
-- No model routing — Opus everywhere, including mechanical text/git work
 - No place for a "draft commit + archive plan" step, so commits had no consistent shape
 
 ## What the kit is
@@ -48,9 +47,9 @@ Kit installs to `wp-content/themes/`, not `wp-content/themes/<child-theme>/`. Th
 
 Required sections: TL;DR, Status, Lane, Approval gates, Files, Approach, Visual reference, Out of scope, Verification, Slices (large only). Optional: Open questions. Skips PRD-style "user stories", "acceptance criteria checkboxes", "stakeholders".
 
-### 8. Model routing per skill via PreToolUse hook
+### ~~8. Model routing per skill via PreToolUse hook~~ *(removed)*
 
-Opus for Ponder/Forge/Temper (judgment-heavy). Sonnet for Seal (mechanical text/git). Hook prints a non-blocking reminder if the current session is on a different tier; user can `/model <tier>` or proceed.
+Model routing was removed from the kit. All phases run on whatever model the user has active. The hook and `preferred-model` frontmatter no longer ship.
 
 ### 9. AskUserQuestion is the default UI for grill questions
 

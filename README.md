@@ -9,7 +9,7 @@ Installs alongside the `cool-fse` parent theme and your child theme inside `wp-c
 - `/temper` — parallel review (code + visual + a11y) and write a report into the plan
 - `/seal` — draft a commit message, archive the plan (you run the commit yourself)
 
-Everything else — methodology, lane definitions, plan format, model routing — lives in [`kit/WORKFLOW.md`](kit/WORKFLOW.md).
+Everything else — methodology, lane definitions, plan format — lives in [`kit/WORKFLOW.md`](kit/WORKFLOW.md).
 
 ## Install
 
@@ -22,24 +22,13 @@ curl -fsSL https://raw.githubusercontent.com/NaNathan13/cool-fse-claude-workflow
 The installer:
 
 1. Verifies you're in a `wp-content/themes/` dir (must contain `cool-fse/` and at least one other theme dir)
-2. Copies `WORKFLOW.md`, `.claude/skills/*`, `.claude/hooks/*`, `.claude/settings.json`, and the empty `.claude/plans/{active,done}/` + `.claude/screenshots/` directories
+2. Copies `WORKFLOW.md`, `.claude/skills/*`, `.claude/settings.json`, and the empty `.claude/plans/{active,done}/` + `.claude/screenshots/` directories
 3. Asks for project name, child theme dir, and local URL — and renders `CLAUDE.md` + `CONTEXT.md` from templates (local proxy port defaults to `10000`; edit `CLAUDE.md` later if your stack differs)
 4. Drops `.claude/scripts/update.sh` so you can re-run later in update mode
 
 ## First-run AI setup prompt
 
-After installing, paste this into a fresh Claude Code session at the themes root. It confirms the values the installer rendered into CLAUDE.md (project name, child theme dir, local URL) so you can catch any typos before starting work:
-
-```
-You're being run inside a freshly-installed cool-fse-claude-workflow kit. Read
-WORKFLOW.md and CLAUDE.md so the methodology and project context are loaded,
-then use AskUserQuestion to confirm: "Does CLAUDE.md look correct?" — show
-the rendered project name, child theme dir, and local URL. Patch CLAUDE.md
-only if I say something is wrong.
-
-Then stop. Don't infer anything else, don't seed the glossary, don't start
-/ponder.
-```
+After installing, start a fresh Claude Code session at the themes root and run `/scrub`. It confirms project values, replaces placeholders, and deletes stock files — see the setup.sh output for next steps.
 
 ## Update
 

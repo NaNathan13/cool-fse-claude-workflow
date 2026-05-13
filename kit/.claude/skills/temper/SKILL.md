@@ -15,7 +15,7 @@ If a slug was passed, read `.claude/plans/active/<slug>.md`. Otherwise list `act
 
 Confirm:
 - `Status: in-progress`
-- A `Forge complete <date>` line is present at the bottom
+- A `Forge complete <date>` line is present (after a `---` rule near the bottom)
 
 If either is missing, ask the user — Forge may not have finished, or the slug is wrong.
 
@@ -56,7 +56,7 @@ For every CSS rule in any `<child-theme>/blocks/**/*.css` file in the diff: ask 
 - Block folder + file names: `kebab-case`, all matching
 - Block JSON `"name"`: `acf/<block-name>` — matches folder
 - PHP root class on block: `<block-name>` — matches folder
-- CSS root selector: `<block-name>` (BEM descendants `<block-name>__<element>`)
+- CSS root selector: `<block-name>` (BEM descendants `<block-name>--<element>`, double hyphen not `__`)
 - ACF field keys: `snake_case`; labels: Title Case
 
 **C. PHP block pattern**
@@ -66,10 +66,12 @@ For every CSS rule in any `<child-theme>/blocks/**/*.css` file in the diff: ask 
 - `maybe_get_block_video_background()` inside the root where relevant
 - Sub-blocks via `block('...')`, not `get_template_part()` / `include`
 - `esc_html` / `esc_url` / `esc_attr` on output; raw echo only for wysiwyg
+- Image fields not using `return_format: id` or not rendered via `img_if()` = **blocking**
+- ACF link fields not rendered via `acf_link()` = **blocking**
 
 **D. Block JSON correctness**
 - `"style": ["cool-fse-css"]` and `"script": "cool-fse-js"` present
-- `"acf": { "mode": "preview", "renderTemplate": "<name>-block.php" }`
+- `"acf": { "mode": "preview", "renderCallback": "acf_display_gutenberg_block_callback" }`
 - `"category"` set
 
 **E. ACF JSON correctness**

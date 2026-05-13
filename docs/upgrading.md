@@ -16,8 +16,7 @@ That script just re-invokes `setup.sh` with `WORKFLOW.md` already present, which
 
 **Overwritten:**
 - `WORKFLOW.md`
-- `.claude/skills/{ponder,forge,temper,seal}/SKILL.md`
-- `.claude/hooks/model-router.sh`
+- `.claude/skills/{ponder,forge,temper,seal,inscribe,scrub,researcher}/SKILL.md`
 - `.claude/scripts/update.sh`
 
 **Diff-prompted (asked before overwriting):**

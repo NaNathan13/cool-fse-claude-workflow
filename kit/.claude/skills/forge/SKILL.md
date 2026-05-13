@@ -23,7 +23,7 @@ Also read:
 
 - The matching parent file in `cool-fse/` for any override (you must understand what you're replacing)
 - The relevant ACF JSON in `<child-theme>/acf-json/` for any field group changes
-- Utility classes in `cool-fse/blocks/global/css/` for any CSS plan that names them
+- Utility classes in `cool-fse/blocks/global/css/` — read this directory before writing any CSS. Key files: `display-helpers.css`, `flex-utilities.css`, `spacing-utilities.css`, `grid-col-helpers.css`, `show-hide-helpers.css`, `text-helpers.css`, `sizing-utilities.css`, `positioning-utilities.css`. Apply these as classes in the PHP markup. Custom CSS is a last resort.
 - Custom elements in `cool-fse/blocks/global/js/custom-elements/` for any interactive behavior
 - `<child-theme>/theme.json` for color/font/spacing presets the plan references
 - 1–2 existing similar blocks in `<child-theme>/blocks/gutenberg/` to match the local style
@@ -84,14 +84,99 @@ If during the build you realize:
 
 ### 9. Follow cool-fse conventions
 
-- **Block PHP pattern**: `get_block_attributes()`, `get_wrapper_attributes()`, `acf_to_css_var()`, `maybe_get_block_video_background()` as appropriate
-- **Block JSON**: `"acf": { "mode": "preview", "renderTemplate": "<name>-block.php" }`, `"style": ["cool-fse-css"]`, `"script": "cool-fse-js"`, plus `category` and `icon`
-- **Sub-blocks** via `<?php block('gutenberg/<name>/<sub-part>') ?>` or `<?php block('components/<name>') ?>` — never `get_template_part()` or `include`
+#### Block PHP boilerplate
+
+Every block follows this exact pattern:
+
+```php
+<?php
+if (!defined('ABSPATH')) exit;
+
+$field = get_field('field_name');
+if (empty($field)) return;
+
+$block_attributes = [
+  'class' => 'block-name acf-style-vars',
+  'style' => acf_to_css_var()
+];
+?>
+<div <?= get_block_attributes(@$_block_data, $block_attributes) ?>>
+  <?= maybe_get_block_video_background() ?>
+  <animate-on-scroll <?= get_block_animation_attributes() ?>>
+    <div <?= get_wrapper_attributes() ?>>
+      <!-- content -->
+    </div>
+  </animate-on-scroll>
+</div>
+```
+
+Key details: `@$_block_data` (with `@` error suppression) is always the first argument to `get_block_attributes()`. `acf-style-vars` class is always present. Short echo tags `<?=` exclusively — never `<?php echo`.
+
+#### Block JSON
+
+Every block JSON must include all of these fields:
+
+```json
+{
+  "name": "acf/block-name",
+  "title": "Block Title",
+  "description": "What this block does",
+  "category": "theme-basics",
+  "keywords": ["keyword1", "keyword2"],
+  "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\">...</svg>",
+  "script": "cool-fse-js",
+  "style": ["cool-fse-css"],
+  "acf": {
+    "mode": "preview",
+    "renderCallback": "acf_display_gutenberg_block_callback"
+  },
+  "example": {
+    "attributes": {
+      "mode": "preview",
+      "data": { "is_preview": true }
+    }
+  },
+  "supports": {
+    "inserter": true,
+    "multiple": true,
+    "anchor": true
+  }
+}
+```
+
+Every field is required. Pick an appropriate Font Awesome SVG for the icon. Set 2–5 keywords. Always use `renderCallback`, not `renderTemplate`. Category is always `theme-basics`.
+
+#### CSS naming
+
+`<block-name>` as root class. Elements: `<block-name>--<element>` (double hyphen). Modifiers: `<block-name>--<modifier-name>`. No double underscores (`__`) — this is not standard BEM.
+
+#### CSS: utility classes first
+
+Utility classes first, always. New block CSS is a Gate 2 trigger. Read `cool-fse/blocks/global/css/` before writing any CSS rule. Apply utility classes on the PHP markup rather than writing equivalent CSS. Mobile-responsive utility prefix: `mobile:` (e.g., `mobile:m-0`, `mobile:flex-column`). Breakpoint: 768px.
+
+#### Images
+
+ACF image fields MUST use `return_format: "id"`. Render with `img_if($id, $size, $classes)` — never raw `<img src>` or `wp_get_attachment_image()`. URL format is only for CSS `background-image` and must be explicitly justified.
+
+#### Links
+
+ACF link fields: render with `acf_link($link, $classes, $aria)` — never build `<a>` tags manually from ACF link arrays.
+
+#### Sub-blocks and components
+
+`<?php block('gutenberg/<name>/<sub-part>') ?>` or `<?php block('components/<name>') ?>` — never `get_template_part()` or `include`. Arguments are an associative array — each key becomes a local variable in the component's scope. E.g., `block('components/accordion', ['slides' => $slides])` makes `$slides` available inside `accordion.php`.
+
+#### PHP style
+
+- No type hints on local variables or block-level code. Match the helper function style: `array` and return types only where existing functions use them.
+- Always use short echo tags (`<?=`), never `<?php echo`.
+- **Escaping**: `esc_html`, `esc_url`, `esc_attr` on output; raw echo only for ACF wysiwyg fields.
+
+#### Other rules
+
 - **Override path**: mirror the parent path inside `<child-theme>/`. No registration needed.
-- **CSS**: utility classes first, always. New block CSS is a Gate 2 trigger.
 - **No hardcoded colors / hex / spacing.** Use `--wp--preset--color--*`, `--wp--preset--spacing--*`, `--wp--preset--font-family--*`, or the `--font-family-*` vars from `<child-theme>/blocks/global/css/global.css`.
 - **No `var_dump`, `print_r`, `console.log`** left in.
-- **Escaping**: `esc_html`, `esc_url`, `esc_attr` on output; raw echo only for ACF wysiwyg fields.
 
 ### 10. Build sanity
 

@@ -140,11 +140,6 @@ mkdir -p "$TARGET/.claude/plans/active" "$TARGET/.claude/plans/done" "$TARGET/.c
 [[ -f "$TARGET/.claude/plans/done/.gitkeep" ]] || touch "$TARGET/.claude/plans/done/.gitkeep"
 [[ -f "$TARGET/.claude/screenshots/.gitkeep" ]] || touch "$TARGET/.claude/screenshots/.gitkeep"
 
-# Drop the shipped example plan into done/ on first install only
-if [[ "$MODE" == "install" && -f "$SRC/kit/.claude/plans/done/EXAMPLE-testimonial-slider.md" ]]; then
-  cp "$SRC/kit/.claude/plans/done/EXAMPLE-testimonial-slider.md" "$TARGET/.claude/plans/done/"
-fi
-
 # update.sh helper
 mkdir -p "$TARGET/.claude/scripts"
 cat > "$TARGET/.claude/scripts/update.sh" <<'EOF'

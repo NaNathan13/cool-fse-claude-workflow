@@ -111,7 +111,7 @@ The plan grows over time — Forge appends `Forge complete <date>` lines, Temper
 
 ```
 .claude/plans/active/<slug>.md   ← Ponder writes here
-                                 ← Forge updates Status to "in-progress"
+                                 ← Forge confirms Status is "in-progress"
                                  ← Forge appends handoff line
                                  ← Temper appends "## Temper Report"
                                  ← Seal updates Status to "done"

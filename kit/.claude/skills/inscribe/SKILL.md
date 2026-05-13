@@ -67,12 +67,12 @@ real ACF field keys, real custom element tags. Specific enough that Forge can
 execute without judgment calls. For each file: what changes, where, and why.
 
 ## Visual Reference
-Paths to .claude/design-references/ screenshots, Figma links, or "waived".
+Paths to .claude/screenshots/<slug>/ screenshots, Figma links, or "waived".
 
 ## Out of Scope
 Things that came up but are not being built in this pass.
 
-## Verification — Human Review Checklist
+## Verification
 Page URL: <local URL for this block>
 
 - [ ] Block renders correctly in the editor (preview mode)
@@ -116,6 +116,8 @@ Then stop. Do not continue into Forge. Do not make any code changes.
 - **ACF field keys must follow the naming convention defined in CONTEXT.md.**
 - **Concrete, not hand-wavy.** If an ACF field key isn't decided, decide it now and write it down.
 - **Every approval gate named.** Forge should never discover a gate mid-build that the plan didn't pre-authorize.
+- **ACF image fields: specify `return_format: id`** for each image field and note the `img_if()` size parameter. Flag the rare URL exception with rationale.
+- **New blocks: note the intended `category`, `keywords`, and `icon` concept** (Forge picks the actual SVG).
 - **Utility-class first.** If the approach section mentions CSS, confirm utilities can't cover it first.
 - **No code in this file.** The plan describes intent; Forge writes code.
 - **Do not commit.** Plan files are never committed from this skill.

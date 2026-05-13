@@ -42,6 +42,14 @@ Invoke `/grill-me` (the upstream Pocock skill) as the interview engine. If `/gri
 - Brand tokens (theme.json colors, font presets) — read `<child-theme>/theme.json`
 - Visual reference — ask for a screenshot, a Figma link, or an existing site
 
+**Always-ask questions (every non-trivial ponder session):**
+
+These three must be asked regardless of block type. They surface constraints that affect the plan's Approach, Verification, and color token choices:
+
+1. **Mobile view** — "How should this behave on mobile? Same layout scaled down, stacked, hidden, or something else?" (The theme breaks at 768px and has `mobile:` utility prefix variants.)
+2. **Dark/light background** — "Does this block need to work on both dark backgrounds with light text AND light backgrounds with dark text, or just one?" (Affects color token choices and whether the plan needs a color-scheme gate.)
+3. **Accessibility** — "Any specific accessibility requirements? Keyboard nav, screen reader announcements, ARIA roles, reduced-motion support?" (Feeds into the plan's Verification section and Temper's a11y audit.)
+
 When the codebase can answer a question, **read the code instead of asking.** For multi-file research (utility class surveys, existing block patterns, ACF field conventions), dispatch a research subagent using the `/researcher` brief template rather than reading dozens of files yourself. Dispatch in the background and continue grilling on other branches while it returns.
 
 ### 4. Mid-grill lane decision

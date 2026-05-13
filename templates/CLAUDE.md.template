@@ -61,16 +61,23 @@ Block JSON files are auto-registered via glob — no manual `register_block_type
 
 ```php
 <?php
-  $block_attributes = [
-    'class' => 'my-block acf-style-vars',
-    'style' => acf_to_css_var()
-  ];
+if (!defined('ABSPATH')) exit;
+
+$field = get_field('field_name');
+if (empty($field)) return;
+
+$block_attributes = [
+  'class' => 'my-block acf-style-vars',
+  'style' => acf_to_css_var()
+];
 ?>
-<div <?= get_block_attributes($block_attributes) ?>>
+<div <?= get_block_attributes(@$_block_data, $block_attributes) ?>>
   <?= maybe_get_block_video_background() ?>
-  <div <?= get_wrapper_attributes([ 'class' => 'rich-text' ]) ?>>
-    <!-- content -->
-  </div>
+  <animate-on-scroll <?= get_block_animation_attributes() ?>>
+    <div <?= get_wrapper_attributes([ 'class' => 'rich-text' ]) ?>>
+      <!-- content -->
+    </div>
+  </animate-on-scroll>
 </div>
 ```
 
@@ -114,15 +121,17 @@ These actions require user confirmation before proceeding (or pre-approval in th
 - Block folder + file names: `kebab-case` matching the block name
 - Block JSON `"name"`: `acf/<block-name>`
 - PHP root class: `<block-name>` (matches folder)
-- CSS classes: `<block-name>` as root, BEM-style descendants
+- CSS classes: `<block-name>` as root, `<block-name>--<element>` for descendants (double-hyphen, not `__`)
 - ACF field groups: **always edit by modifying JSON files in `acf-json/` directly** — never use WP Admin to create or change fields
 
 ## ACF + Gutenberg integration
 
-- Blocks use ACF in `preview` mode — `"acf": { "mode": "preview", "renderTemplate": "<name>-block.php" }`
+- Blocks use ACF in `preview` mode — `"acf": { "mode": "preview", "renderCallback": "acf_display_gutenberg_block_callback" }`
 - `acf_to_css_var()` converts ACF style fields (padding, color, etc.) into inline CSS variables on the block root
 - `get_wrapper_attributes()` applies ACF-controlled wrapper width/padding settings
-- `get_block_attributes()` merges block-level and ACF-level HTML attributes
+- `get_block_attributes()` merges block-level and ACF-level HTML attributes — first arg is always `@$_block_data`
+- `img_if($id, $size, $classes)` renders responsive images from ACF image fields (`return_format: id`). Never use raw `<img src>` or `wp_get_attachment_image()`.
+- `acf_link($link, $classes, $aria)` renders ACF link fields. Never build `<a>` tags manually from link arrays.
 - Field groups are defined by editing JSON in `acf-json/` directly — WordPress syncs them on next admin load
 - **Never use WP Admin to create or edit ACF fields**
 

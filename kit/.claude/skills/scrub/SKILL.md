@@ -50,7 +50,7 @@ rm -rf .claude/hooks/
 
 ### 5. Clean settings.json
 
-Read `.claude/settings.json`. If it contains a `"hooks"` block with a `PreToolUse` matcher for `"Skill"` referencing `model-router.sh`, remove the entire `"hooks"` key. Write the cleaned JSON back.
+Read `.claude/settings.json`. If it contains a `"hooks"` block, remove the entire `"hooks"` key. Write the cleaned JSON back.
 
 If there's no hooks block, skip this step.
 
@@ -74,22 +74,18 @@ Read `WORKFLOW.md`. Remove these sections if still present:
 - **"## Model routing"** — the entire section (header through the next `##` header)
 - **"## Updating the kit"** — the entire section (header through the next `##` header)
 
-### 8. Remove preferred-model from skill frontmatter
-
-For each `.claude/skills/*/SKILL.md` file: if the YAML frontmatter contains a `preferred-model:` line, remove it.
-
-### 9. Update WORKFLOW.md header and worked examples
+### 8. Update WORKFLOW.md header and worked examples
 
 - Retitle the `# Workflow` header to `# <Project Name> — Workflow`
 - In the worked examples section, replace `<child-theme>/` paths with the confirmed child theme dir
 - Replace `http://<local-url>/` or `http://my-site.local/` URLs with the confirmed local URL
 
-### 10. Update CONTEXT.md
+### 9. Update CONTEXT.md
 
 - Retitle the `# CONTEXT.md` header to `# <Project Name> — Context`
 - Update the `## Project-specific terms` section header (keep the section, just confirm the header is present)
 
-### 11. Report
+### 10. Report
 
 Tell the user:
 
