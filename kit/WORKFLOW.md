@@ -48,6 +48,28 @@ Trivial is auto-detected on Ponder turn 1 — if the request reads like a one-li
 
 **Rule of thumb:** if you're making more than two judgment calls in a row inside the grill without alignment, you skipped too far ahead — back up.
 
+## The Quality Bar
+
+Every non-trivial block is built against five quality dimensions, named collectively
+the **Quality Bar**. They thread through every phase.
+
+| Dimension | What it means |
+|---|---|
+| **Visual quality** | The block looks deliberately designed — spacing rhythm, type hierarchy, polish. Not generic. |
+| **ADA / accessibility** | Keyboard-operable, semantic markup, WCAG AA contrast, reduced-motion respected. |
+| **Cross-browser** | Works on the latest Chrome, Firefox, Safari, and Edge. No IE. |
+| **Mobile** | Deliberately designed at the 768px breakpoint and below — not just "doesn't break." |
+| **ACF editor UX** | The field group is pleasant for a content editor — instructions, sensible labels, required flags, grouped fields. |
+
+- **Ponder** asks about all five (the always-ask block).
+- **Inscribe** writes a `## Quality Bar` section into the plan — one concrete, checkable target per dimension.
+- **Forge** builds to those targets.
+- **Temper** audits each Quality Bar line: one check per dimension.
+
+The Quality Bar is not an approval gate — it's a shared checklist so "looks good" and
+"accessible" have written criteria instead of being left to judgment. Dark/light
+background support is asked alongside it but is tracked in Design Decisions, not the Bar.
+
 ## Plan file format
 
 Plans live in `.claude/plans/active/<slug>.md` while in flight, then move to `.claude/plans/done/<slug>.md` after Seal.
@@ -70,6 +92,10 @@ and the visitor's POV (what they see).
 
 ## Design Decisions
 Numbered. Each line: decision + rationale.
+
+## Quality Bar
+One concrete, checkable target per dimension (see WORKFLOW.md → The Quality Bar).
+Temper audits one check per line. "N/A" only with a reason.
 
 ## Approval Gates (pre-approved)
 List the gated actions this plan is authorizing up front so Forge doesn't
