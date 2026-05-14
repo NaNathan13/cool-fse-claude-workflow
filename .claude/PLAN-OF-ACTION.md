@@ -4,12 +4,12 @@
 
 **Goal:** Thread the five block-quality dimensions — visual quality, ADA, cross-browser, mobile, ACF editor UX — through every phase of the cool-fse kit as a named "Quality Bar," and add the Temper passes that audit it.
 
-**Architecture:** Edit the kit *source* in `kit/` and `templates/` (installed instances pull from `main` via `update.sh` — not in scope here). Add one new skill (`burnish`, a design-review pass). Wire two new Temper subagents (ACF editor-UX, design review) plus a cross-browser compat-lint section into the existing code-review subagent. The four-phase model is unchanged — no new top-level phase.
+**Architecture:** Edit the kit *source* in `kit/` and `templates/` (installed instances pull from `main` via `update.sh` — not in scope here). Add one new skill (`appraise`, a design-review pass). Wire two new Temper subagents (ACF editor-UX, design review) plus a cross-browser compat-lint section into the existing code-review subagent. The four-phase model is unchanged — no new top-level phase.
 
 **Tech Stack:** Markdown skill files, `WORKFLOW.md`, Bash installer (`setup.sh`, not modified — it auto-discovers skill dirs). No unit-test framework exists for this kit (design-note #3); "verification" here means cross-file consistency greps + a token sweep.
 
 **Decisions driving this plan** (from `.claude/RECOMMENDATIONS.md`, locked 2026-05-14):
-1. Visual review → new dedicated `burnish` design-review skill, Temper `--visual` subagent.
+1. Visual review → new dedicated `appraise` design-review skill, Temper `--visual` subagent.
 2. a11y blocking → no change; stays suggestions-only. **No work required.**
 3. ACF editor-UX → dedicated Temper subagent, runs by default.
 4. Cross-browser → static compat lint inside the code-review subagent only.
@@ -24,12 +24,12 @@
 | `kit/.claude/skills/ponder/SKILL.md` | Phase 1 | Rename always-ask block to "the Quality Bar," expand to 5 dimensions |
 | `kit/.claude/skills/inscribe/SKILL.md` | Plan writer | Add `## Quality Bar` to the plan template |
 | `kit/.claude/skills/forge/SKILL.md` | Phase 2 | Add cross-browser, interactive-states, mobile conventions; reference the plan's Quality Bar |
-| `kit/.claude/skills/temper/SKILL.md` | Phase 3 | Add compat-lint to code review; add ACF editor-UX subagent; wire in `burnish`; update dispatch logic + report template |
-| `kit/.claude/skills/burnish/SKILL.md` | **New** — design-review pass | Create the skill |
+| `kit/.claude/skills/temper/SKILL.md` | Phase 3 | Add compat-lint to code review; add ACF editor-UX subagent; wire in `appraise`; update dispatch logic + report template |
+| `kit/.claude/skills/appraise/SKILL.md` | **New** — design-review pass | Create the skill |
 | `templates/CLAUDE.md.template` | Project entry point | One-line pointer to the Quality Bar |
 | `docs/design-notes.md` | Rationale record | Update decision #12; add decision #17 |
 
-`setup.sh` is **not** modified: it derives the skill list from `kit/.claude/skills/*/` at install time (lines 162-165), so the new `burnish/` dir is picked up automatically.
+`setup.sh` is **not** modified: it derives the skill list from `kit/.claude/skills/*/` at install time (lines 162-165), so the new `appraise/` dir is picked up automatically.
 
 ---
 
@@ -253,23 +253,23 @@ git commit -m "feat(forge): cross-browser, interactive-state, and mobile convent
 
 ---
 
-## Task 5: Create the `burnish` design-review skill
+## Task 5: Create the `appraise` design-review skill
 
-`burnish` evaluates whether a built block "looks very good." It carries `frontend-design`'s
+`appraise` evaluates whether a built block "looks very good." It carries `frontend-design`'s
 aesthetic standards but is framed as an *audit* that returns a verdict — it never edits code.
 Temper dispatches it as a `--visual` subagent.
 
 **Files:**
-- Create: `kit/.claude/skills/burnish/SKILL.md`
+- Create: `kit/.claude/skills/appraise/SKILL.md`
 
 - [ ] **Step 1: Create the skill file**
 
-Create `kit/.claude/skills/burnish/SKILL.md` with exactly this content:
+Create `kit/.claude/skills/appraise/SKILL.md` with exactly this content:
 
 ```markdown
 ---
-name: burnish
-description: Design-quality review pass. Sub-skill of Temper — evaluates whether a built block "looks very good" against a fixed aesthetic rubric and returns an Approve / Recommend-changes verdict. Read-and-report only; never edits code. Triggered by /burnish or dispatched by Temper with --visual.
+name: appraise
+description: Design-quality review pass. Sub-skill of Temper — evaluates whether a built block "looks very good" against a fixed aesthetic rubric and returns an Approve / Recommend-changes verdict. Read-and-report only; never edits code. Triggered by /appraise or dispatched by Temper with --visual.
 ---
 
 You are auditing the **visual design quality** of a block Forge already built. You do
@@ -330,15 +330,15 @@ Verdict is **Approve** only when no axis is Fail and at most one is Weak. Otherw
 
 Run:
 ```bash
-head -4 kit/.claude/skills/burnish/SKILL.md && echo "---" && grep -n "^## \|^name:\|^description:" kit/.claude/skills/burnish/SKILL.md
+head -4 kit/.claude/skills/appraise/SKILL.md && echo "---" && grep -n "^## \|^name:\|^description:" kit/.claude/skills/appraise/SKILL.md
 ```
-Expected: valid frontmatter (`name: burnish`, a `description:` line) and the section headings (`## Inputs`, `## The rubric`, `## Output`, `## Don't do`).
+Expected: valid frontmatter (`name: appraise`, a `description:` line) and the section headings (`## Inputs`, `## The rubric`, `## Output`, `## Don't do`).
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add kit/.claude/skills/burnish/SKILL.md
-git commit -m "feat(burnish): add the design-quality review skill"
+git add kit/.claude/skills/appraise/SKILL.md
+git commit -m "feat(appraise): add the design-quality review skill"
 ```
 
 ---
@@ -373,7 +373,7 @@ Check if `--visual` was passed as an argument (e.g., `/temper testimonial-slider
 
 **Dispatched only with `--visual`:**
 - Visual review subagent
-- Design review subagent (the `burnish` skill)
+- Design review subagent (the `appraise` skill)
 - Accessibility subagent
 
 The user is the visual reviewer by default; `--visual` adds the automated browser passes.
@@ -436,13 +436,13 @@ The existing `#### Subagent 2 — Visual Review (--visual only)` becomes **Subag
 #### Subagent 4 — Design Review (`--visual` only)
 
 Skip unless `--visual` was passed. Dispatch a `general-purpose` agent with Playwright
-access and have it follow the `burnish` skill. Brief it with:
+access and have it follow the `appraise` skill. Brief it with:
 
 - The plan's `## Visual Reference` and the `## Quality Bar` visual-quality line
 - The local URL and any auth (from `CLAUDE.md`)
 - The block's page URL
 
-`burnish` evaluates design quality against a fixed rubric and returns a verdict
+`appraise` evaluates design quality against a fixed rubric and returns a verdict
 (**Approve** / **Recommend changes**) plus actionable findings. Design-review findings
 are **suggested** — unless they contradict the plan's `## Visual Reference`, then
 **blocking**.
@@ -474,7 +474,7 @@ subsection after `### Nits` and before `### Accessibility — suggestions only`,
 ### Design Review
 *(omit unless `--visual` was passed)*
 - **Verdict:** Approve | Recommend changes
-- Rubric + findings from the `burnish` pass; screenshots in `.claude/screenshots/<slug>/`
+- Rubric + findings from the `appraise` pass; screenshots in `.claude/screenshots/<slug>/`
 ```
 
 Also update the `**Counts:**` line in the template to:
@@ -495,9 +495,9 @@ In `### 7. Hand off`, update the quoted hand-off message's counts line to match:
 
 Run:
 ```bash
-grep -n "Subagent [1-5]\|compat lint\|ACF Editor UX\|Design Review\|burnish\|Quality Bar" kit/.claude/skills/temper/SKILL.md
+grep -n "Subagent [1-5]\|compat lint\|ACF Editor UX\|Design Review\|appraise\|Quality Bar" kit/.claude/skills/temper/SKILL.md
 ```
-Expected: Subagents 1–5 numbered, the compat-lint check (I), Quality Bar coverage check (J), the ACF Editor UX subagent + report subsection, the Design Review subagent + report subsection, and `burnish` referenced.
+Expected: Subagents 1–5 numbered, the compat-lint check (I), Quality Bar coverage check (J), the ACF Editor UX subagent + report subsection, the Design Review subagent + report subsection, and `appraise` referenced.
 
 - [ ] **Step 10: Commit**
 
@@ -523,12 +523,12 @@ In the `## The big idea` phase table, change the **Temper** row's "What it does"
 | **Temper** | Code review + ACF editor-UX review (always); visual + design + a11y with `--visual`. Audits the Quality Bar. | `## Temper Report` section in the plan |
 ```
 
-- [ ] **Step 2: Add `/burnish` to the skill cheat sheet**
+- [ ] **Step 2: Add `/appraise` to the skill cheat sheet**
 
 In `## Skill cheat sheet`, add this row after the `/researcher` row:
 
 ```markdown
-| `/burnish` | sub-skill of Temper | Design-quality review pass; auto-dispatched by `/temper --visual`, callable stand-alone on a built block |
+| `/appraise` | sub-skill of Temper | Design-quality review pass; auto-dispatched by `/temper --visual`, callable stand-alone on a built block |
 ```
 
 - [ ] **Step 3: Update the sub-skills/subagents table**
@@ -536,7 +536,7 @@ In `## Skill cheat sheet`, add this row after the `/researcher` row:
 In `## Sub-skills and subagents per phase`, replace the **Temper** row with:
 
 ```markdown
-| **Temper** | `/burnish` (in-kit, via the design-review subagent) | `feature-dev:code-reviewer` + ACF editor-UX agent (always); visual + design-review (`burnish`) + a11y agents (only with `--visual`) | Code review and ACF editor-UX run every time. `--visual` adds the three browser-driven passes, dispatched in a single parallel message. |
+| **Temper** | `/appraise` (in-kit, via the design-review subagent) | `feature-dev:code-reviewer` + ACF editor-UX agent (always); visual + design-review (`appraise`) + a11y agents (only with `--visual`) | Code review and ACF editor-UX run every time. `--visual` adds the three browser-driven passes, dispatched in a single parallel message. |
 ```
 
 - [ ] **Step 4: Update the worked example**
@@ -556,7 +556,7 @@ Session 3: /temper testimonial-slider
 
 Run:
 ```bash
-grep -n "burnish\|ACF editor-UX\|design-review\|Quality Bar" kit/WORKFLOW.md
+grep -n "appraise\|ACF editor-UX\|design-review\|Quality Bar" kit/WORKFLOW.md
 ```
 Expected: the cheat-sheet row, the sub-skills table row, the phase-table cell, and the worked-example lines.
 
@@ -564,7 +564,7 @@ Expected: the cheat-sheet row, the sub-skills table row, the phase-table cell, a
 
 ```bash
 git add kit/WORKFLOW.md
-git commit -m "docs(workflow): document the new Temper passes and burnish skill"
+git commit -m "docs(workflow): document the new Temper passes and appraise skill"
 ```
 
 ---
@@ -582,7 +582,7 @@ In `docs/design-notes.md`, replace the body of `### 12. Temper has no auto-fix l
 ```markdown
 Reports findings; user directs the fix. Auto-fix loops at this scale create more
 confusion than they save. Two subagents always run (code review, ACF editor-UX);
-`--visual` adds three more in parallel (visual review, design review via `burnish`,
+`--visual` adds three more in parallel (visual review, design review via `appraise`,
 accessibility). Accessibility findings stay suggestions-only — see decision #17.
 ```
 
@@ -615,7 +615,7 @@ quality, ADA, cross-browser, mobile, ACF editor UX) — see `WORKFLOW.md`.
 
 Run:
 ```bash
-grep -n "Quality Bar\|burnish\|design review" docs/design-notes.md templates/CLAUDE.md.template
+grep -n "Quality Bar\|appraise\|design review" docs/design-notes.md templates/CLAUDE.md.template
 ```
 Expected: decision #17, the updated #12, and the CLAUDE.md.template pointer.
 
@@ -649,7 +649,7 @@ Run:
 ```bash
 for d in kit/.claude/skills/*/; do basename "$d"; done
 ```
-Expected: `burnish forge inscribe ponder researcher seal temper` — `burnish` present. (`setup.sh` lines 162-165 glob this same path, so presence here = auto-installed.)
+Expected: `appraise forge inscribe ponder researcher seal temper` — `appraise` present. (`setup.sh` lines 162-165 glob this same path, so presence here = auto-installed.)
 
 - [ ] **Step 3: Confirm "Quality Bar" is threaded through all four phase skills + WORKFLOW**
 
@@ -697,11 +697,11 @@ git commit -m "docs: mark Quality Bar recommendations as implemented"
 - R2 cross-browser compat lint → Task 6 Step 3 (code-review check I) + Task 4 Step 2 (Forge convention). ✓
 - R3 ACF editor-UX subagent → Task 6 Step 4 + report subsection Step 7. ✓
 - R4 a11y blocking → no change required; recorded in design-note #17 (Task 8). ✓
-- R5 burnish design-review skill → Task 5 (skill) + Task 6 Step 5 (Temper wiring) + Task 4 (Forge interactive states) + Task 2 (Ponder visual-reference push). ✓
+- R5 appraise design-review skill → Task 5 (skill) + Task 6 Step 5 (Temper wiring) + Task 4 (Forge interactive states) + Task 2 (Ponder visual-reference push). ✓
 
 **Placeholder scan:** every step shows the exact prose to insert and an exact verify command. No TBDs.
 
-**Type/name consistency:** skill named `burnish` in Tasks 5, 6, 7, 8. Subagents numbered 1 (Code Review) → 2 (ACF Editor UX) → 3 (Visual Review) → 4 (Design Review) → 5 (Accessibility) consistently across Task 6 and the WORKFLOW/design-notes references. Report subsections `### ACF Editor UX` and `### Design Review` match between Task 6 Step 7 and the WORKFLOW worked example.
+**Type/name consistency:** skill named `appraise` in Tasks 5, 6, 7, 8. Subagents numbered 1 (Code Review) → 2 (ACF Editor UX) → 3 (Visual Review) → 4 (Design Review) → 5 (Accessibility) consistently across Task 6 and the WORKFLOW/design-notes references. Report subsections `### ACF Editor UX` and `### Design Review` match between Task 6 Step 7 and the WORKFLOW worked example.
 
 ---
 

@@ -67,7 +67,7 @@ Assumes `pnpm run local` is already running. If not reachable, Forge says so and
 
 Reports findings; user directs the fix. Auto-fix loops at this scale create more
 confusion than they save. Two subagents always run (code review, ACF editor-UX);
-`--visual` adds three more in parallel (visual review, design review via `burnish`,
+`--visual` adds three more in parallel (visual review, design review via `appraise`,
 accessibility). Accessibility findings stay suggestions-only — see decision #17.
 
 ### 13. Seal does not run `git commit`

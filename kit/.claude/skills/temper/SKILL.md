@@ -40,7 +40,7 @@ Check if `--visual` was passed as an argument (e.g., `/temper testimonial-slider
 
 **Dispatched only with `--visual`:**
 - Visual review subagent
-- Design review subagent (the `burnish` skill)
+- Design review subagent (the `appraise` skill)
 - Accessibility subagent
 
 The user is the visual reviewer by default; `--visual` adds the automated browser passes.
@@ -159,13 +159,13 @@ Output: list of visual findings with screenshot paths.
 #### Subagent 4 — Design Review (`--visual` only)
 
 Skip unless `--visual` was passed. Dispatch a `general-purpose` agent with Playwright
-access and have it follow the `burnish` skill. Brief it with:
+access and have it follow the `appraise` skill. Brief it with:
 
 - The plan's `## Visual Reference` and the `## Quality Bar` visual-quality line
 - The local URL and any auth (from `CLAUDE.md`)
 - The block's page URL
 
-`burnish` evaluates design quality against a fixed rubric and returns a verdict
+`appraise` evaluates design quality against a fixed rubric and returns a verdict
 (**Approve** / **Recommend changes**) plus actionable findings. Design-review findings
 are **suggested** — unless they contradict the plan's `## Visual Reference`, then
 **blocking**.
@@ -196,7 +196,7 @@ Combine subagent outputs into a single Temper Report. Categorize:
 - **Nit** — cosmetic (extra blank lines, comment style)
 - **Accessibility** — suggestions only
 - **ACF Editor UX** — suggestions only, never blocking; its own report subsection
-- **Design Review** — the `burnish` verdict pass; its own report subsection; omit if `--visual` was not passed
+- **Design Review** — the `appraise` verdict pass; its own report subsection; omit if `--visual` was not passed
 
 Within each category, sort by impact.
 
@@ -241,7 +241,7 @@ needs rework before commit>.
 ### Design Review
 *(omit unless `--visual` was passed)*
 - **Verdict:** Approve | Recommend changes
-- Rubric + findings from the `burnish` pass; screenshots in `.claude/screenshots/<slug>/`
+- Rubric + findings from the `appraise` pass; screenshots in `.claude/screenshots/<slug>/`
 
 ### CSS → Utility Class Replacements
 *(if any — these are the highest-priority "suggested" items)*

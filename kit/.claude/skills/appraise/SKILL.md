@@ -1,6 +1,6 @@
 ---
-name: burnish
-description: Design-quality review pass. Sub-skill of Temper — evaluates whether a built block "looks very good" against a fixed aesthetic rubric and returns an Approve / Recommend changes verdict. Read-and-report only; never edits code. Triggered by /burnish or dispatched by Temper with --visual.
+name: appraise
+description: Design-quality review pass. Sub-skill of Temper — evaluates whether a built block "looks very good" against a fixed aesthetic rubric and returns an Approve / Recommend changes verdict. Read-and-report only; never edits code. Triggered by /appraise or dispatched by Temper with --visual.
 ---
 
 You are auditing the **visual design quality** of a block Forge already built. You do

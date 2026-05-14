@@ -105,8 +105,7 @@ clear **recommend / approve** verdict plus specific findings. Temper dispatches 
 `--visual` subagent pass.
 
 (`frontend-design` itself is built to *create* interfaces; using it as-is to review would be
-off-label. The new skill borrows its standards, owns its own review framing. Working name TBD —
-something in the kit's metalworking vocabulary, e.g. `burnish`.)
+off-label. The new skill borrows its standards, owns its own review framing. Named `appraise`.)
 
 Supporting changes:
 - **Ponder** — for blocks where visual quality matters, push hard for a real visual reference

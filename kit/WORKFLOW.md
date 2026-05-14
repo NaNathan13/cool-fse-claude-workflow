@@ -174,7 +174,7 @@ Plan-level gate listing is the contract. Mid-build discoveries are the exception
 | `/temper [slug] [--visual]` | 3 | Fresh session, after human review. Add `--visual` for visual + design-review + a11y checks |
 | `/seal [slug]` | 4 | Fresh session, Temper handed off (or you've decided to skip Temper) |
 | `/researcher` | Utility | Research subagent brief template — used inside Ponder and Forge for codebase research |
-| `/burnish` | sub-skill of Temper | Design-quality review pass; auto-dispatched by `/temper --visual`, callable stand-alone on a built block |
+| `/appraise` | sub-skill of Temper | Design-quality review pass; auto-dispatched by `/temper --visual`, callable stand-alone on a built block |
 
 `/grill-me` is **upstream** — comes from the Pocock skills library (`mattpocock/skills`). Install separately: `~/.claude/skills/grill-me/SKILL.md` or via the plugin. If you don't have it, Ponder falls back to plain-text grilling.
 
@@ -188,7 +188,7 @@ Each top-level phase invokes other skills and/or parallel subagents under the ho
 |---|---|---|---|
 | **Ponder** | `/grill-me` (upstream), `/inscribe` (in-kit) | `Explore` via `/researcher` (codebase research) | Grill-me runs the interview; Inscribe writes the plan file. Researcher dispatches read-only research agents for utility-class surveys, existing patterns, etc. All callable stand-alone. |
 | **Forge** | — | `Explore` via `/researcher` (pre-build checks) | Researcher dispatches read-only research agents to verify plan assumptions (utility classes exist, no field key conflicts, etc.). The plan is the contract. |
-| **Temper** | `/burnish` (in-kit, via the design-review subagent) | `feature-dev:code-reviewer` + ACF editor-UX agent (always); visual + design-review (`burnish`) + a11y agents (only with `--visual`) | Code review and ACF editor-UX run every time. `--visual` adds the three browser-driven passes, dispatched in a single parallel message. |
+| **Temper** | `/appraise` (in-kit, via the design-review subagent) | `feature-dev:code-reviewer` + ACF editor-UX agent (always); visual + design-review (`appraise`) + a11y agents (only with `--visual`) | Code review and ACF editor-UX run every time. `--visual` adds the three browser-driven passes, dispatched in a single parallel message. |
 | **Seal** | — | — | Pure mechanical work: read diff + plan, draft commit message, archive plan. No skills, no subagents. |
 
 **Re-running pieces in isolation:**
