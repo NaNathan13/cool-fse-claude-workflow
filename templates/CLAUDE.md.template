@@ -144,4 +144,7 @@ These actions require user confirmation before proceeding (or pre-approval in th
 
 This project uses the four-phase `/ponder` → `/forge` → `/temper` → `/seal` workflow. **Read `WORKFLOW.md` once for the methodology.** Read `CONTEXT.md` for canonical names and synonyms-to-avoid.
 
+Every non-trivial block is built against the five-dimension **Quality Bar** (visual
+quality, ADA / accessibility, cross-browser, mobile, ACF editor UX) — see `WORKFLOW.md`.
+
 The trivial lane (one-liner changes) skips the chain — just make the edit. Anything bigger goes through Ponder first.

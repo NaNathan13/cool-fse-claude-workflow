@@ -65,7 +65,10 @@ Assumes `pnpm run local` is already running. If not reachable, Forge says so and
 
 ### 12. Temper has no auto-fix loop
 
-Reports findings; user directs the fix. Auto-fix loops at this scale create more confusion than they save. Three subagents in parallel: code review (always), visual review (UI), accessibility (UI, suggestions only).
+Reports findings; user directs the fix. Auto-fix loops at this scale create more
+confusion than they save. Two subagents always run (code review, ACF editor-UX);
+`--visual` adds three more in parallel (visual review, design review via `burnish`,
+accessibility). Accessibility findings stay suggestions-only — see decision #17.
 
 ### 13. Seal does not run `git commit`
 
@@ -82,6 +85,16 @@ One-liner install: `curl … | bash` from inside `wp-content/themes/`. Re-runnin
 ### 16. Single session at a time
 
 No concurrency spec. One phase at a time, top to bottom.
+
+### 17. The Quality Bar — five named dimensions, threaded through every phase
+
+Visual quality, ADA / accessibility, cross-browser, mobile, ACF editor UX. Ponder asks all five,
+Inscribe writes a `## Quality Bar` plan section with one concrete target per dimension,
+Forge builds to it, Temper audits one check per line. It is a shared checklist, not an
+approval gate. Accessibility stays suggestions-only even though it's on the Bar — the
+written target is intent for the human reviewer and the `--visual` a11y pass, not an
+automated blocker. Cross-browser is enforced by a static compat lint inside the
+code-review subagent, not by live multi-engine testing.
 
 ## What was deliberately rejected
 
