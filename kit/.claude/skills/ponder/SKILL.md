@@ -42,13 +42,20 @@ Invoke `/grill-me` (the upstream Pocock skill) as the interview engine. If `/gri
 - Brand tokens (theme.json colors, font presets) — read `{{CHILD_THEME_DIR}}/theme.json`
 - Visual reference — ask for a screenshot, a Figma link, or an existing site
 
-**Always-ask questions (every non-trivial ponder session):**
+**Always-ask questions — the Quality Bar (every non-trivial ponder session):**
 
-These three must be asked regardless of block type. They surface constraints that affect the plan's Approach, Verification, and color token choices:
+These cover the Quality Bar dimensions (see `WORKFLOW.md` → The Quality Bar) plus
+dark/light background. Five questions are numbered below; cross-browser is a stated
+default. The answers feed the plan's `## Quality Bar` and `## Verification` sections.
+Ask one per turn.
 
-1. **Mobile view** — "How should this behave on mobile? Same layout scaled down, stacked, hidden, or something else?" (The theme breaks at 768px and has `mobile:` utility prefix variants.)
-2. **Dark/light background** — "Does this block need to work on both dark backgrounds with light text AND light backgrounds with dark text, or just one?" (Affects color token choices and whether the plan needs a color-scheme gate.)
-3. **Accessibility** — "Any specific accessibility requirements? Keyboard nav, screen reader announcements, ARIA roles, reduced-motion support?" (Feeds into the plan's Verification section and Temper's a11y audit.)
+1. **Visual quality** — "Is there a comp, Figma link, or existing block to mirror? If not, describe the look you're after." (A block with no visual reference can't be reviewed for design quality — push for one before accepting "waived.")
+2. **Mobile** — "How should this behave on mobile? Same layout scaled down, stacked, hidden, or something else?" (Theme breaks at 768px; `mobile:` utility prefix variants exist.)
+3. **Dark/light background** — "Does this need to work on both dark backgrounds with light text AND light backgrounds with dark text, or just one?" (Affects color token choices and whether the plan needs a color-scheme gate. Tracked in Design Decisions, not the Quality Bar.)
+4. **Accessibility** — "Any specific accessibility requirements? Keyboard nav, screen reader announcements, ARIA roles, reduced-motion support?" (Feeds the plan's Verification section and Temper's a11y audit.)
+5. **ACF editor UX** — "Who edits this block, and how configurable should it be? Any fields that must be required, grouped, or need specific instructions?" (Feeds the plan's Quality Bar ACF line and Temper's ACF editor-UX audit.)
+
+**Cross-browser** is the fifth Quality Bar dimension but rarely varies — state the default rather than asking: "I'll target the latest Chrome/Firefox/Safari/Edge, no IE — flag now if the design needs anything unusual." Only escalate to a real question if the design implies risky CSS.
 
 When the codebase can answer a question, **read the code instead of asking.** For multi-file research (utility class surveys, existing block patterns, ACF field conventions), dispatch a research subagent using the `/researcher` brief template rather than reading dozens of files yourself. Dispatch in the background and continue grilling on other branches while it returns.
 
