@@ -39,7 +39,7 @@ Invoke `/grill-me` (the upstream Pocock skill) as the interview engine. If `/gri
 - Field shape (ACF repeater vs. inner blocks vs. flat fields)
 - Layout (utility classes from `cool-fse/blocks/global/css/` first — read them so you know what's available)
 - Custom elements (`<ada-slider>`, `<ada-modal>`, `<animate-on-scroll>`, `<g-map>`) — check `cool-fse/blocks/global/js/custom-elements/` for what exists
-- Brand tokens (theme.json colors, font presets) — read `<child-theme>/theme.json`
+- Brand tokens (theme.json colors, font presets) — read `{{CHILD_THEME_DIR}}/theme.json`
 - Visual reference — ask for a screenshot, a Figma link, or an existing site
 
 **Always-ask questions (every non-trivial ponder session):**

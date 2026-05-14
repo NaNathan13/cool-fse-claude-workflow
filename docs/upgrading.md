@@ -16,11 +16,13 @@ That script just re-invokes `setup.sh` with `WORKFLOW.md` already present, which
 
 **Overwritten:**
 - `WORKFLOW.md`
-- `.claude/skills/{ponder,forge,temper,seal,inscribe,scrub,researcher}/SKILL.md`
+- `.claude/skills/*/SKILL.md` — every skill the kit ships
 - `.claude/scripts/update.sh`
 
+After overwriting, `WORKFLOW.md` and the skills are re-rendered from the project values stored in `.claude/.kit-config` (project name, child theme dir, local URL, proxy port) — so the refreshed files come back project-specific, not full of `{{TOKEN}}` placeholders. If `.kit-config` is missing (a pre-templating install), update mode prompts for those values once and writes the file.
+
 **Diff-prompted (asked before overwriting):**
-- `.claude/settings.json` — your project may have added local permissions or hooks. Diff is shown and you confirm.
+- `.claude/settings.json` — your project may have added local permissions. Diff is shown and you confirm.
 
 **Never touched:**
 - `CLAUDE.md` — your project's. Hand-edit if the template added sections you want.

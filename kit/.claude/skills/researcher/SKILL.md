@@ -41,7 +41,7 @@ During the grill, when the codebase can answer a question faster than asking the
 
 - "What utility classes cover flexbox layouts?" → dispatch researcher to `cool-fse/blocks/global/css/`
 - "Do any existing blocks use `<ada-slider>`?" → dispatch researcher to grep across `blocks/`
-- "What ACF field patterns does the child theme already use?" → dispatch researcher to `<child-theme>/acf-json/`
+- "What ACF field patterns does the child theme already use?" → dispatch researcher to `{{CHILD_THEME_DIR}}/acf-json/`
 
 Dispatch the research, continue grilling on other branches while it returns.
 
@@ -67,14 +67,14 @@ Agent 1 (Explore):
 
 Agent 2 (Explore):
   What to find: Which existing blocks use <ada-slider> and how they configure it (attributes used)
-  Where to look: grep for "ada-slider" in cool-fse/blocks/ and <child-theme>/blocks/
+  Where to look: grep for "ada-slider" in cool-fse/blocks/ and {{CHILD_THEME_DIR}}/blocks/
   What NOT to do: Read and report only. Do not edit, create, or delete any files.
   Output format: bullet list — one entry per block, with the relevant PHP snippet
   Word cap: 300
 
 Agent 3 (Explore):
   What to find: What ACF field key prefix pattern the child theme uses (e.g., field_<block>_<name>)
-  Where to look: <child-theme>/acf-json/
+  Where to look: {{CHILD_THEME_DIR}}/acf-json/
   What NOT to do: Read and report only. Do not edit, create, or delete any files.
   Output format: single paragraph summarizing the convention, with 2-3 examples
   Word cap: 150

@@ -22,10 +22,7 @@
       "Bash(cat:*)",
       "Bash(wc:*)",
       "Bash(mv .claude/plans/active/*)",
-      "Bash(mkdir -p .claude/screenshots/*)",
-      "Bash(rm -f .claude/plans/done/EXAMPLE-*)",
-      "Bash(rm -rf .claude/scripts/)",
-      "Bash(rm -rf .claude/hooks/)"
+      "Bash(mkdir -p .claude/screenshots/*)"
     ]
   }
 }

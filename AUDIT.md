@@ -1,5 +1,10 @@
 # Kit Audit — 2026-05-13
 
+> **Historical snapshot.** Reflects the kit as of 2026-05-13. Several items have since
+> been addressed — notably the `scrub` skill was removed and `setup.sh` now renders
+> every kit file on install/update from `.claude/.kit-config`. Read this as a
+> point-in-time record, not the current state.
+
 ## Action / Skip Summary
 
 ### Do now (worth your time before sharing)

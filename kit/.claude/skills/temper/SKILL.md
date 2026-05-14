@@ -28,7 +28,7 @@ git status -s
 
 Cross-reference with the plan's "Files to Create / Modify". Anything in the diff that's NOT in the plan is **scope drift** — flag it in the report.
 
-Read every file in scope fully. Also read 1–2 existing similar blocks in `<child-theme>/blocks/gutenberg/` to judge fit, and the relevant utility CSS files in `cool-fse/blocks/global/css/`.
+Read every file in scope fully. Also read 1–2 existing similar blocks in `{{CHILD_THEME_DIR}}/blocks/gutenberg/` to judge fit, and the relevant utility CSS files in `cool-fse/blocks/global/css/`.
 
 ### 3. Parse flags
 
@@ -50,7 +50,7 @@ Use `feature-dev:code-reviewer` as the subagent type. If the Agent tool returns 
 - These checks (in priority order):
 
 **A. CSS utility-class audit (HIGHEST priority)**
-For every CSS rule in any `<child-theme>/blocks/**/*.css` file in the diff: ask "could this be replaced by a utility class from `cool-fse/blocks/global/css/`?" Common offenders: `display: flex` / `gap` / `align-items` / `text-align` / `font-*` / `color` using `--wp--preset--*` vars / `padding` / `margin`. Read the utility class files first; name the specific class as the replacement.
+For every CSS rule in any `{{CHILD_THEME_DIR}}/blocks/**/*.css` file in the diff: ask "could this be replaced by a utility class from `cool-fse/blocks/global/css/`?" Common offenders: `display: flex` / `gap` / `align-items` / `text-align` / `font-*` / `color` using `--wp--preset--*` vars / `padding` / `margin`. Read the utility class files first; name the specific class as the replacement.
 
 **B. Naming conventions**
 - Block folder + file names: `kebab-case`, all matching

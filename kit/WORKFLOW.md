@@ -148,7 +148,6 @@ Plan-level gate listing is the contract. Mid-build discoveries are the exception
 | `/temper [slug] [--visual]` | 3 | Fresh session, after human review. Add `--visual` for Playwright visual + a11y checks |
 | `/seal [slug]` | 4 | Fresh session, Temper handed off (or you've decided to skip Temper) |
 | `/researcher` | Utility | Research subagent brief template — used inside Ponder and Forge for codebase research |
-| `/scrub` | Setup | Once after `setup.sh` to replace placeholders and delete stock files |
 
 `/grill-me` is **upstream** — comes from the Pocock skills library (`mattpocock/skills`). Install separately: `~/.claude/skills/grill-me/SKILL.md` or via the plugin. If you don't have it, Ponder falls back to plain-text grilling.
 
@@ -179,7 +178,7 @@ Each top-level phase invokes other skills and/or parallel subagents under the ho
 ```
 You: change "© 2024" to "© 2026" in the footer
 Claude: Trivial — making the change.
-       [edits <child-theme>/blocks/gutenberg/main-footer/main-footer.php]
+       [edits {{CHILD_THEME_DIR}}/blocks/gutenberg/main-footer/main-footer.php]
        Done. Commit when ready.
 ```
 

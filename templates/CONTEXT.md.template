@@ -40,7 +40,7 @@ _Avoid:_ "widget", "shortcode" (different concepts).
 
 ### Child theme
 
-The project-specific theme directory (e.g., `my-site/`). All project work lives here. Mirrors parent paths to override.
+The project-specific theme directory, `{{CHILD_THEME_DIR}}/`. All project work lives here. Mirrors parent paths to override.
 
 ### Field group
 
@@ -48,7 +48,7 @@ An ACF field group, defined as JSON in `acf-json/`. **Always** edited via the JS
 
 ### ACF JSON
 
-The synced JSON files in `<child-theme>/acf-json/`. Source of truth for ACF field definitions.
+The synced JSON files in `{{CHILD_THEME_DIR}}/acf-json/`. Source of truth for ACF field definitions.
 
 ### ACF field key convention
 

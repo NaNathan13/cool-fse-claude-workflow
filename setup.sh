@@ -3,8 +3,10 @@
 # Run from inside `wp-content/themes/`:
 #   curl -fsSL https://raw.githubusercontent.com/NaNathan13/cool-fse-claude-workflow/main/setup.sh | bash
 #
-# First run: copies kit + renders CLAUDE.md / CONTEXT.md from templates.
-# Re-run:    overwrites project-agnostic files only; never touches CLAUDE.md / CONTEXT.md.
+# First run: copies the kit, prompts for project values, renders every kit file
+#            from them, and writes .claude/.kit-config.
+# Re-run:    refreshes project-agnostic files and re-renders them from
+#            .claude/.kit-config; never touches CLAUDE.md / CONTEXT.md.
 
 set -o pipefail
 
@@ -34,8 +36,65 @@ prompt() {
   fi
 }
 
+# Escape a value for the replacement side of a sed s|...|...| command.
+sed_escape() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//&/\\&}"
+  s="${s//|/\\|}"
+  printf '%s' "$s"
+}
+
+# Escape a value for embedding inside a JSON string literal.
+json_escape() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  printf '%s' "$s"
+}
+
+# Read one string key out of a flat JSON file written by this script.
+# Usage: kit_config_get KEY FILE
+kit_config_get() {
+  sed -n "s/^[[:space:]]*\"$1\"[[:space:]]*:[[:space:]]*\"\(.*\)\"[[:space:]]*,\{0,1\}[[:space:]]*\$/\1/p" "$2" \
+    | sed 's/\\"/"/g; s/\\\\/\\/g'
+}
+
+# render SRC DEST — substitute the four kit tokens (uses project_name/child_dir/
+# local_url/local_port from the enclosing scope).
+render() {
+  local e_pn e_cd e_lu e_lp
+  e_pn="$(sed_escape "$project_name")"
+  e_cd="$(sed_escape "$child_dir")"
+  e_lu="$(sed_escape "$local_url")"
+  e_lp="$(sed_escape "$local_port")"
+  sed \
+    -e "s|{{PROJECT_NAME}}|${e_pn}|g" \
+    -e "s|{{CHILD_THEME_DIR}}|${e_cd}|g" \
+    -e "s|{{LOCAL_URL}}|${e_lu}|g" \
+    -e "s|{{LOCAL_PORT}}|${e_lp}|g" \
+    "$1" > "$2"
+}
+
+# render_inplace FILE — render a file over itself (no-op if it doesn't exist).
+render_inplace() {
+  local f="$1"
+  [[ -f "$f" ]] || return 0
+  if render "$f" "$f.kit-tmp"; then
+    mv "$f.kit-tmp" "$f"
+  else
+    rm -f "$f.kit-tmp"
+    return 1
+  fi
+}
+
 REPO_URL="https://github.com/NaNathan13/cool-fse-claude-workflow.git"
 TARGET="$(pwd)"
+KIT_CONFIG="$TARGET/.claude/.kit-config"
+
+# Skills retired from the kit — purged from existing installs on update.
+# The current skill list (KIT_SKILLS) is derived from the cloned repo below.
+LEGACY_SKILLS=(scrub)
 
 # Banner (colors only when stdout is a terminal)
 if [[ -t 1 ]]; then
@@ -98,13 +157,60 @@ if ! git clone --depth 1 "$REPO_URL" "$TMPDIR/repo" >/dev/null 2>&1; then
 fi
 SRC="$TMPDIR/repo"
 
-# --- 4. Copy project-agnostic files (both modes) --------------------------------------
+# Derive the kit's skill list from what the repo actually ships, so the copy
+# and render passes can't drift when skills are added to or removed from the kit.
+KIT_SKILLS=()
+for d in "$SRC"/kit/.claude/skills/*/; do
+  [[ -d "$d" ]] && KIT_SKILLS+=("$(basename "$d")")
+done
+
+# --- 4. Gather project values ---------------------------------------------------------
+# Install always prompts. Update reads .claude/.kit-config; if it's missing
+# (a pre-templating install), it prompts the same way and the file is written below.
+need_config_write="no"
+
+# Update mode reads the persisted values; install mode — or an update with a
+# missing/incomplete .kit-config — prompts for them and (re)writes the file.
+if [[ "$MODE" == "update" && -f "$KIT_CONFIG" ]]; then
+  project_name="$(kit_config_get project_name "$KIT_CONFIG")"
+  child_dir="$(kit_config_get child_theme_dir "$KIT_CONFIG")"
+  local_url="$(kit_config_get local_url "$KIT_CONFIG")"
+  local_port="$(kit_config_get local_port "$KIT_CONFIG")"
+  [[ -z "$local_port" ]] && local_port="10000"
+fi
+
+if [[ -n "${project_name:-}" && -n "${child_dir:-}" && -n "${local_url:-}" ]]; then
+  echo "→ project config: loaded from .claude/.kit-config"
+  echo "  project: $project_name · child theme: $child_dir/ · url: $local_url"
+else
+  echo ""
+  if [[ "$MODE" == "update" ]]; then
+    echo "→ .claude/.kit-config is missing or incomplete — enter your project values"
+    echo "  so the kit files can be re-rendered:"
+  else
+    echo "→ project setup"
+  fi
+  default_child="${child_candidates[0]}"
+  prompt project_name "Project name (e.g. \"Acme Site\")" "My Project" "PROJECT_NAME"
+  prompt child_dir    "Child theme directory" "$default_child" "CHILD_THEME_DIR"
+  default_url="http://${child_dir}.local/"
+  prompt local_url    "Local URL" "$default_url" "LOCAL_URL"
+  # Local proxy port defaults to 10000 (BrowserSync default for cool-fse).
+  # Edit CLAUDE.md after install if your stack uses something else.
+  local_port="${LOCAL_PORT:-10000}"
+  need_config_write="yes"
+fi
+
+# --- 5. Copy project-agnostic files (both modes) --------------------------------------
+echo ""
 echo "→ copying WORKFLOW.md"
 cp "$SRC/kit/WORKFLOW.md" "$TARGET/WORKFLOW.md"
 
 echo "→ copying .claude/skills"
 mkdir -p "$TARGET/.claude/skills"
-rm -rf "$TARGET/.claude/skills/ponder" "$TARGET/.claude/skills/forge" "$TARGET/.claude/skills/temper" "$TARGET/.claude/skills/seal" "$TARGET/.claude/skills/inscribe" "$TARGET/.claude/skills/scrub" "$TARGET/.claude/skills/researcher"
+for s in "${KIT_SKILLS[@]}" "${LEGACY_SKILLS[@]}"; do
+  rm -rf "$TARGET/.claude/skills/$s"
+done
 cp -R "$SRC/kit/.claude/skills/." "$TARGET/.claude/skills/"
 
 # settings.json — copy on install, diff-prompt on update
@@ -149,46 +255,44 @@ cd "$(dirname "$0")/../.." && curl -fsSL https://raw.githubusercontent.com/NaNat
 EOF
 chmod +x "$TARGET/.claude/scripts/update.sh"
 
-# --- 5. Install mode: render templates ------------------------------------------------
+# --- 6. Write .claude/.kit-config -----------------------------------------------------
+if [[ "$need_config_write" == "yes" ]]; then
+  cat > "$KIT_CONFIG" <<EOF
+{
+  "project_name": "$(json_escape "$project_name")",
+  "child_theme_dir": "$(json_escape "$child_dir")",
+  "local_url": "$(json_escape "$local_url")",
+  "local_port": "$(json_escape "$local_port")"
+}
+EOF
+  echo "→ wrote .claude/.kit-config"
+fi
+
+# --- 7. Render kit files from project values ------------------------------------------
+echo "→ rendering WORKFLOW.md + skills"
+render_inplace "$TARGET/WORKFLOW.md"
+for s in "${KIT_SKILLS[@]}"; do
+  render_inplace "$TARGET/.claude/skills/$s/SKILL.md"
+done
+
+# --- 8. Install mode: render CLAUDE.md + CONTEXT.md -----------------------------------
 if [[ "$MODE" == "install" ]]; then
-  echo ""
-  echo "→ rendering templates"
-
-  # Suggest first child theme as default
-  default_child="${child_candidates[0]}"
-
-  prompt project_name "Project name (e.g. \"Acme Site\")" "My Project" "PROJECT_NAME"
-  prompt child_dir    "Child theme directory" "$default_child" "CHILD_THEME_DIR"
-  default_url="http://${child_dir}.local/"
-  prompt local_url    "Local URL" "$default_url" "LOCAL_URL"
-  # Local proxy port is hardcoded to 10000 (BrowserSync default for cool-fse).
-  # Edit CLAUDE.md after install if your stack uses something else.
-  local_port="${LOCAL_PORT:-10000}"
+  echo "→ rendering CLAUDE.md + CONTEXT.md"
 
   # Render CLAUDE.md — skip if it already exists (don't clobber hand-edited content)
   if [[ -f "$TARGET/CLAUDE.md" ]]; then
-    echo "  → CLAUDE.md exists, skipping (rendered template at $TARGET/CLAUDE.md.template-rendered for reference)"
-    sed \
-      -e "s|{{PROJECT_NAME}}|${project_name}|g" \
-      -e "s|{{CHILD_THEME_DIR}}|${child_dir}|g" \
-      -e "s|{{LOCAL_URL}}|${local_url}|g" \
-      -e "s|{{LOCAL_PORT}}|${local_port}|g" \
-      "$SRC/templates/CLAUDE.md.template" > "$TARGET/CLAUDE.md.template-rendered"
+    echo "  → CLAUDE.md exists, skipping (rendered template at CLAUDE.md.template-rendered for reference)"
+    render "$SRC/templates/CLAUDE.md.template" "$TARGET/CLAUDE.md.template-rendered"
   else
-    sed \
-      -e "s|{{PROJECT_NAME}}|${project_name}|g" \
-      -e "s|{{CHILD_THEME_DIR}}|${child_dir}|g" \
-      -e "s|{{LOCAL_URL}}|${local_url}|g" \
-      -e "s|{{LOCAL_PORT}}|${local_port}|g" \
-      "$SRC/templates/CLAUDE.md.template" > "$TARGET/CLAUDE.md"
+    render "$SRC/templates/CLAUDE.md.template" "$TARGET/CLAUDE.md"
     echo "  → wrote CLAUDE.md"
   fi
 
   if [[ -f "$TARGET/CONTEXT.md" ]]; then
-    echo "  → CONTEXT.md exists, skipping (template at $TARGET/CONTEXT.md.template-shipped for reference)"
-    cp "$SRC/templates/CONTEXT.md.template" "$TARGET/CONTEXT.md.template-shipped"
+    echo "  → CONTEXT.md exists, skipping (rendered template at CONTEXT.md.template-rendered for reference)"
+    render "$SRC/templates/CONTEXT.md.template" "$TARGET/CONTEXT.md.template-rendered"
   else
-    cp "$SRC/templates/CONTEXT.md.template" "$TARGET/CONTEXT.md"
+    render "$SRC/templates/CONTEXT.md.template" "$TARGET/CONTEXT.md"
     echo "  → wrote CONTEXT.md"
   fi
 
@@ -197,14 +301,13 @@ if [[ "$MODE" == "install" ]]; then
   echo ""
   echo "  Next steps:"
   echo "  1. Start a new Claude Code session here: cd $TARGET && claude"
-  echo "  2. Run /scrub to replace placeholders and delete stock files."
-  echo "  3. Make sure the upstream /grill-me skill is installed (Pocock skills library)."
-  echo "  4. Skim WORKFLOW.md once, then try /ponder on your first task."
+  echo "  2. Make sure the upstream /grill-me skill is installed (Pocock skills library)."
+  echo "  3. Skim WORKFLOW.md once, then try /ponder on your first task."
   echo ""
   exit 0
 fi
 
-# --- 6. Update mode: diff templates and report ----------------------------------------
+# --- 9. Update mode: diff templates and report ----------------------------------------
 echo ""
 echo "→ checking templates against your current files"
 
@@ -238,6 +341,6 @@ template_diff_report "$SRC/templates/CONTEXT.md.template" "$TARGET/CONTEXT.md" "
 
 echo ""
 echo "✓ Updated."
-echo "  WORKFLOW.md, .claude/skills/ overwritten."
+echo "  WORKFLOW.md + .claude/skills/ refreshed and re-rendered from .claude/.kit-config."
 echo "  CLAUDE.md, CONTEXT.md, .claude/plans/, .claude/screenshots/ untouched."
 echo ""

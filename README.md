@@ -22,13 +22,10 @@ curl -fsSL https://raw.githubusercontent.com/NaNathan13/cool-fse-claude-workflow
 The installer:
 
 1. Verifies you're in a `wp-content/themes/` dir (must contain `cool-fse/` and at least one other theme dir)
-2. Copies `WORKFLOW.md`, `.claude/skills/*`, `.claude/settings.json`, and the empty `.claude/plans/{active,done}/` + `.claude/screenshots/` directories
-3. Asks for project name, child theme dir, and local URL — and renders `CLAUDE.md` + `CONTEXT.md` from templates (local proxy port defaults to `10000`; edit `CLAUDE.md` later if your stack differs)
-4. Drops `.claude/scripts/update.sh` so you can re-run later in update mode
-
-## First-run AI setup prompt
-
-After installing, start a fresh Claude Code session at the themes root and run `/scrub`. It confirms project values, replaces placeholders, and deletes stock files — see the setup.sh output for next steps.
+2. Asks for project name, child theme dir, and local URL (local proxy port defaults to `10000`)
+3. Copies `WORKFLOW.md`, `.claude/skills/*`, `.claude/settings.json`, and the empty `.claude/plans/{active,done}/` + `.claude/screenshots/` directories
+4. Renders every kit file — `WORKFLOW.md`, the skills, `CLAUDE.md`, and `CONTEXT.md` — from your answers, and saves those answers to `.claude/.kit-config`
+5. Drops `.claude/scripts/update.sh` so you can re-run later in update mode
 
 ## Update
 
@@ -38,7 +35,7 @@ From the same `wp-content/themes/` dir:
 bash .claude/scripts/update.sh
 ```
 
-Update mode overwrites project-agnostic files (`WORKFLOW.md`, skills, hooks) and **does not** touch `CLAUDE.md` or `CONTEXT.md`. It diffs the templates against your current files and prints a list of new sections you might want to merge in by hand.
+Update mode refreshes the project-agnostic files (`WORKFLOW.md`, skills) and re-renders them from `.claude/.kit-config`, so your project values survive. It never touches `CLAUDE.md` or `CONTEXT.md`, and it diffs the templates against your current files to print a list of new sections you might want to merge in by hand. (If `.kit-config` is missing — a pre-templating install — it asks for your project values once and creates it.)
 
 ## Requirements
 

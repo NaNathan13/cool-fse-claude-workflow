@@ -22,11 +22,11 @@ Read every file listed in "Files to Create / Modify" to see current state. Plans
 Also read:
 
 - The matching parent file in `cool-fse/` for any override (you must understand what you're replacing)
-- The relevant ACF JSON in `<child-theme>/acf-json/` for any field group changes
+- The relevant ACF JSON in `{{CHILD_THEME_DIR}}/acf-json/` for any field group changes
 - Utility classes in `cool-fse/blocks/global/css/` — read this directory before writing any CSS. Key files: `display-helpers.css`, `flex-utilities.css`, `spacing-utilities.css`, `grid-col-helpers.css`, `show-hide-helpers.css`, `text-helpers.css`, `sizing-utilities.css`, `positioning-utilities.css`. Apply these as classes in the PHP markup. Custom CSS is a last resort.
 - Custom elements in `cool-fse/blocks/global/js/custom-elements/` for any interactive behavior
-- `<child-theme>/theme.json` for color/font/spacing presets the plan references
-- 1–2 existing similar blocks in `<child-theme>/blocks/gutenberg/` to match the local style
+- `{{CHILD_THEME_DIR}}/theme.json` for color/font/spacing presets the plan references
+- 1–2 existing similar blocks in `{{CHILD_THEME_DIR}}/blocks/gutenberg/` to match the local style
 
 For broad surveys (e.g., "which blocks use this pattern?", "does this utility class exist?"), dispatch a research subagent using the `/researcher` brief template rather than reading every file yourself.
 
@@ -42,13 +42,13 @@ If the plan has an `## Open Questions` section with unresolved items, raise them
 
 ### 5. Verify dev server reachable (UI tasks only)
 
-Pull the local URL from `CLAUDE.md` (e.g., `http://my-site.local/`). Try:
+Pull the local URL from `CLAUDE.md` (e.g., `{{LOCAL_URL}}`). Try:
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}" <LOCAL_URL>
 ```
 
-If the response isn't `200`/`3xx`, tell the user "dev server not reachable at `<URL>` — start `pnpm run local` in `<child-theme>/` and retry" and stop. Do not start the dev server yourself.
+If the response isn't `200`/`3xx`, tell the user "dev server not reachable at `<URL>` — start `pnpm run local` in `{{CHILD_THEME_DIR}}/` and retry" and stop. Do not start the dev server yourself.
 
 ### 6. Execute steps in order
 
@@ -174,8 +174,8 @@ ACF link fields: render with `acf_link($link, $classes, $aria)` — never build 
 
 #### Other rules
 
-- **Override path**: mirror the parent path inside `<child-theme>/`. No registration needed.
-- **No hardcoded colors / hex / spacing.** Use `--wp--preset--color--*`, `--wp--preset--spacing--*`, `--wp--preset--font-family--*`, or the `--font-family-*` vars from `<child-theme>/blocks/global/css/global.css`.
+- **Override path**: mirror the parent path inside `{{CHILD_THEME_DIR}}/`. No registration needed.
+- **No hardcoded colors / hex / spacing.** Use `--wp--preset--color--*`, `--wp--preset--spacing--*`, `--wp--preset--font-family--*`, or the `--font-family-*` vars from `{{CHILD_THEME_DIR}}/blocks/global/css/global.css`.
 - **No `var_dump`, `print_r`, `console.log`** left in.
 
 ### 10. Build sanity
