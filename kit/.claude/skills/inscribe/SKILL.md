@@ -48,6 +48,15 @@ Visitor POV: what they see.
 Numbered. Each line: decision — rationale. Be specific enough that Forge
 never has to guess what was agreed on.
 
+## Quality Bar
+One concrete, checkable target per dimension. Pull these from the grill's
+always-ask answers. Be specific — Temper audits one check per line.
+- **Visual quality:** <reference to mirror + the specific look — e.g. "matches Figma in Visual Reference; cards lift 4px on hover">
+- **ADA:** <e.g. "keyboard-operable slider, WCAG AA contrast, prefers-reduced-motion disables autoplay">
+- **Cross-browser:** <usually "latest Chrome/Firefox/Safari/Edge, no IE"; name any risky CSS feature + its fallback>
+- **Mobile:** <e.g. "stacks single-column below 768px; controls stay tap-sized">
+- **ACF editor UX:** <e.g. "every field has instructions; repeater rows collapse to the title sub-field; image fields note the 16:9 crop">
+
 ## Approval Gates (pre-approved)
 List every gated action this plan authorizes so Forge does NOT re-prompt.
 Common gates: touching cool-fse/, new block-level CSS, ACF JSON hand-edits,
@@ -116,6 +125,7 @@ Then stop. Do not continue into Forge. Do not make any code changes.
 - **ACF field keys must follow the naming convention defined in CONTEXT.md.**
 - **Concrete, not hand-wavy.** If an ACF field key isn't decided, decide it now and write it down.
 - **Every approval gate named.** Forge should never discover a gate mid-build that the plan didn't pre-authorize.
+- **Every Quality Bar line is concrete.** "Mobile: responsive" is not a target. "Mobile: stacks single-column below 768px" is. Vague lines give Temper nothing to check.
 - **ACF image fields: specify `return_format: id`** for each image field and note the `img_if()` size parameter. Flag the rare URL exception with rationale.
 - **New blocks: note the intended `category`, `keywords`, and `icon` concept** (Forge picks the actual SVG).
 - **Utility-class first.** If the approach section mentions CSS, confirm utilities can't cover it first.
