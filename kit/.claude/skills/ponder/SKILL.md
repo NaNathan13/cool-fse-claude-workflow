@@ -55,7 +55,7 @@ Ask one per turn.
 4. **Accessibility** — "Any specific accessibility requirements? Keyboard nav, screen reader announcements, ARIA roles, reduced-motion support?" (Feeds the plan's Verification section and Temper's a11y audit.)
 5. **ACF editor UX** — "Who edits this block, and how configurable should it be? Any fields that must be required, grouped, or need specific instructions?" (Feeds the plan's Quality Bar ACF line and Temper's ACF editor-UX audit.)
 
-**Cross-browser** is the fifth Quality Bar dimension but rarely varies — state the default rather than asking: "I'll target the latest Chrome/Firefox/Safari/Edge, no IE — flag now if the design needs anything unusual." Only escalate to a real question if the design implies risky CSS.
+**Cross-browser** is the one Quality Bar dimension not given a numbered question above — it rarely varies, so state the default rather than asking: "I'll target the latest Chrome/Firefox/Safari/Edge, no IE — flag now if the design needs anything unusual." Only escalate to a real question if the design implies risky CSS.
 
 When the codebase can answer a question, **read the code instead of asking.** For multi-file research (utility class surveys, existing block patterns, ACF field conventions), dispatch a research subagent using the `/researcher` brief template rather than reading dozens of files yourself. Dispatch in the background and continue grilling on other branches while it returns.
 
