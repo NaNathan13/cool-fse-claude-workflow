@@ -17,7 +17,7 @@ You (the human) own the design and the visual review. Claude does the typing and
 | **Ponder** | Grill out the design, pick a lane, write a plan | `.claude/plans/active/<slug>.md` |
 | **Forge** | Read the plan and build it. Pause on new approval gates. | Code + `Forge complete` line in the plan |
 | **Human review** | You review in the browser — WP Admin, front end, interactions | Your judgment on whether it looks and works right |
-| **Temper** | Code review (+ visual/a11y with `--visual`). | `## Temper Report` section in the plan |
+| **Temper** | Code review + ACF editor-UX review (always); visual + design-review + a11y with `--visual`. Audits the Quality Bar. | `## Temper Report` section in the plan |
 | **Seal** | Draft a commit message, archive the plan. | Plan moved to `done/`, message in your terminal |
 
 Phases hand off via the plan file, not session memory. Each new session starts fresh and reads the plan cold.
@@ -29,7 +29,7 @@ Phases hand off via the plan file, not session memory. Each new session starts f
 | **Ponder** | Grills, researches codebase, writes the plan | Answers questions, makes design decisions, approves the plan |
 | **Forge** | Builds the code per the plan | Keeps dev server running, answers blockers |
 | **Human review** | — | Goes into WP Admin, builds/edits the page, adds blocks, customizes, visually and functionally reviews |
-| **Temper** | Code review (+ visual if `--visual`) | Reviews findings, decides what to fix |
+| **Temper** | Code review + ACF editor-UX (always); visual + design-review + a11y with `--visual` | Reviews findings, decides what to fix |
 | **Seal** | Drafts commit message, archives plan | Commits, pushes |
 
 **The user is the visual reviewer by default, not Playwright.** Human review between Forge and Temper is where you confirm the build looks right in the browser. Temper's `--visual` flag exists for when you want automated Playwright checks on top of your own review — it's opt-in, not the default.
@@ -171,9 +171,10 @@ Plan-level gate listing is the contract. Mid-build discoveries are the exception
 | `/grill-me` | sub-skill of Ponder | Auto-invoked for the interview; you can also use it stand-alone |
 | `/inscribe` | sub-skill of Ponder | Auto-invoked after grilling to write the plan file; callable stand-alone when decisions are already resolved |
 | `/forge [slug]` | 2 | Fresh session, plan exists in `active/` |
-| `/temper [slug] [--visual]` | 3 | Fresh session, after human review. Add `--visual` for Playwright visual + a11y checks |
+| `/temper [slug] [--visual]` | 3 | Fresh session, after human review. Add `--visual` for visual + design-review + a11y checks |
 | `/seal [slug]` | 4 | Fresh session, Temper handed off (or you've decided to skip Temper) |
 | `/researcher` | Utility | Research subagent brief template — used inside Ponder and Forge for codebase research |
+| `/burnish` | sub-skill of Temper | Design-quality review pass; auto-dispatched by `/temper --visual`, callable stand-alone on a built block |
 
 `/grill-me` is **upstream** — comes from the Pocock skills library (`mattpocock/skills`). Install separately: `~/.claude/skills/grill-me/SKILL.md` or via the plugin. If you don't have it, Ponder falls back to plain-text grilling.
 
@@ -187,7 +188,7 @@ Each top-level phase invokes other skills and/or parallel subagents under the ho
 |---|---|---|---|
 | **Ponder** | `/grill-me` (upstream), `/inscribe` (in-kit) | `Explore` via `/researcher` (codebase research) | Grill-me runs the interview; Inscribe writes the plan file. Researcher dispatches read-only research agents for utility-class surveys, existing patterns, etc. All callable stand-alone. |
 | **Forge** | — | `Explore` via `/researcher` (pre-build checks) | Researcher dispatches read-only research agents to verify plan assumptions (utility classes exist, no field key conflicts, etc.). The plan is the contract. |
-| **Temper** | — | `feature-dev:code-reviewer` (always); `general-purpose` w/ Playwright + `general-purpose` for a11y (only with `--visual`) | Code review is always dispatched. Pass `--visual` to add visual + a11y subagents (all in a single message, parallel). |
+| **Temper** | `/burnish` (in-kit, via the design-review subagent) | `feature-dev:code-reviewer` + ACF editor-UX agent (always); visual + design-review (`burnish`) + a11y agents (only with `--visual`) | Code review and ACF editor-UX run every time. `--visual` adds the three browser-driven passes, dispatched in a single parallel message. |
 | **Seal** | — | — | Pure mechanical work: read diff + plan, draft commit message, archive plan. No skills, no subagents. |
 
 **Re-running pieces in isolation:**
@@ -234,10 +235,10 @@ Human review (you, in the browser):
   → note anything off — you'll feed it to Temper or fix directly
 
 Session 3: /temper testimonial-slider
-  → dispatches code-review subagent
-  → (with --visual: also dispatches visual + a11y subagents)
-  → appends "## Temper Report" with findings
-  → "<X> blocking, <Y> suggested, <Z> nits"
+  → dispatches code-review + ACF editor-UX subagents (always)
+  → (with --visual: also dispatches visual + design-review + a11y subagents)
+  → appends "## Temper Report" with findings, including the design verdict
+  → "<X> blocking, <Y> suggested, <Z> nits, <N> a11y, <M> ACF UX, design: <verdict>"
   → user fixes blockers (in this session, manually, or whatever)
 
 Session 4: /seal testimonial-slider
