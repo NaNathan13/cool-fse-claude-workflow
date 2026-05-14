@@ -5,7 +5,7 @@ description: Phase 2 of the cool-fse workflow. Load a plan from .claude/plans/ac
 
 You are starting Phase 2 of the four-phase cool-fse workflow. Read a plan, build the code, verify it works. Do NOT improvise beyond the plan — if something is unclear or unresolved, surface it and wait.
 
-Read `WORKFLOW.md` once for the contract. Read `CLAUDE.md` for project specifics (URLs, child theme dir, build commands). Read `CONTEXT.md` for vocabulary.
+Read `WORKFLOW.md` once for the contract. Read `CLAUDE.md` for project specifics (URLs, child theme dir, build commands). Read `CONTEXT.md` for vocabulary. Build to the plan's `## Quality Bar` — every line there is a target Temper will audit.
 
 ## Process
 
@@ -171,6 +171,27 @@ ACF link fields: render with `acf_link($link, $classes, $aria)` — never build 
 - No type hints on local variables or block-level code. Match the helper function style: `array` and return types only where existing functions use them.
 - Always use short echo tags (`<?=`), never `<?php echo`.
 - **Escaping**: `esc_html`, `esc_url`, `esc_attr` on output; raw echo only for ACF wysiwyg fields.
+
+#### Cross-browser
+
+Target the latest Chrome, Firefox, Safari, and Edge. No IE. Before using a recent
+CSS feature (`:has()`, `backdrop-filter`, subgrid, `@container` queries, `@property`)
+or `top-level await`, confirm baseline support or provide a fallback. When in doubt,
+prefer the utility classes — they're already cross-browser-tested.
+
+#### Interactive states
+
+Every interactive element (links, buttons, controls, cards-as-links) gets designed
+`:hover`, `:focus-visible`, and `:active` states — never rely on default browser
+styling. `cool-fse/blocks/global/css/hover-focus-animations.css` and
+`cool-fse/blocks/global/css/transition-utilities.css` cover most cases. Any animation or transition must honor
+`prefers-reduced-motion: reduce`.
+
+#### Mobile
+
+Build the mobile layout the plan's Quality Bar describes — don't leave it to chance.
+Apply `mobile:` utility prefixes (breakpoint 768px) on the markup. After building,
+the block must hold together at 375px, not merely "not break."
 
 #### Other rules
 
