@@ -1,19 +1,19 @@
 ---
 name: seal
-description: Phase 4 of the cool-fse workflow. Drafts a commit message based on the plan + diff, marks the plan done, and moves it to .claude/plans/done/. Never runs git commit — user owns commits. Triggered by /seal [slug], "wrap it up", "seal it".
+description: Phase 4 of the cool-fse workflow. Drafts a short commit message from the plan + diff, marks the plan done, and moves it to .claude/plans/done/. Never runs git commit — the user owns commits. Triggered by /seal [slug], "wrap it up", "seal it".
 ---
 
-You are starting Phase 4 of the four-phase cool-fse workflow. Mechanical work: draft a commit message, archive the plan. **You never run `git commit`.** That's the user's job.
+You are Phase 4 of the four-phase cool-fse workflow. Mechanical work: draft a **short**
+commit message and archive the plan. **You never run `git commit`** — that's the user's.
 
-Read `WORKFLOW.md` once for the contract. Read `CLAUDE.md` if you need project specifics.
+Read `WORKFLOW.md` for the contract; `CLAUDE.md` only if you need project specifics.
 
-## Process
+## 1. Load the plan
 
-### 1. Load the plan
+If a slug was passed, read `.claude/plans/active/<slug>.md`. Otherwise list `active/` and
+ask which to seal.
 
-If a slug was passed, read `.claude/plans/active/<slug>.md`. Otherwise list `active/` and ask which to seal.
-
-### 2. Read the diff
+## 2. Read the diff
 
 ```bash
 git diff
@@ -22,79 +22,77 @@ git status -s
 
 Read everything — staged, unstaged, untracked.
 
-### 3. Quick sanity check
+## 3. Sanity check
 
-- Plan has `Forge complete <date>` line — yes? If no, ask the user "Forge handoff line is missing — proceed anyway?"
-- Plan has `## Temper Report` — yes? If no, ask "Temper wasn't run — proceed anyway?"
-- Temper Report has zero unresolved blockers — yes? If there are unresolved blockers, ask "Temper has <N> unresolved blocking items — proceed anyway? (list them so the user can confirm)"
+Use AskUserQuestion (**Yes / No, stop here**) for each that fails:
 
-For each "proceed anyway?" question, use AskUserQuestion with **Yes / No, stop here** as the options.
+- Plan has a `Forge complete <date>` line? If not: "Forge handoff line is missing — proceed anyway?"
+- Plan has a `## Temper Report`? If not: "Temper wasn't run — proceed anyway?"
+- Temper Report has zero unresolved blockers? If not: list them, "Temper has <N> unresolved blocking items — proceed anyway?"
 
-### 4. Read recent commits
+## 4. Match the commit style
 
 ```bash
 git log --oneline -20
 ```
 
-Match the project's commit-message style. Conventional commits (`feat(scope): ...`, `fix(scope): ...`, `style: ...`, `chore: ...`) are the default unless the project clearly uses something else.
+Conventional commits (`feat(scope): …`, `fix(scope): …`, `style: …`, `chore: …`) are the
+default unless the project clearly uses something else.
 
-### 5. Draft the commit message
+## 5. Draft a short commit message
 
-Format:
+**One line. Optionally one short sentence of context — never more.**
 
 ```
-<type>(<scope>): <short summary, imperative, ~70 chars max>
-
-<body — explains WHY, pulled from the plan's TL;DR + Approach. Two or three
-short paragraphs at most. Don't restate the diff — the diff already shows
-WHAT changed.>
-
-Refs: .claude/plans/done/<slug>.md
+<type>(<scope>): <imperative summary, ~70 chars>
 ```
 
-**Type guidance:**
-- `feat` — new block, new functionality
-- `fix` — bug fix
-- `style` — CSS-only changes that don't touch behavior
-- `chore` — non-code (acf-json regen, dependency bumps)
-- `refactor` — restructure without behavior change
-- `docs` — README, comments, plan-only updates
+or, when one line genuinely needs context:
 
-**Scope:** the block name, the feature area, or `theme` for project-wide. Lowercase, kebab.
+```
+<type>(<scope>): <imperative summary>
 
-Output the full message in a fenced ```` ```text ```` code block so the user can copy it cleanly.
+<one short sentence — the WHY, not the what>
+```
 
-### 6. Mark the plan done
+- **Type:** `feat` (new block/feature), `fix`, `style` (CSS-only), `chore` (acf-json regen, deps), `refactor`, `docs`.
+- **Scope:** the block name, the feature area, or `theme`. Lowercase, kebab.
+- No multi-paragraph body. No "Refs:" line. No restating the diff — the diff shows WHAT.
 
-Edit the plan:
-- Flip `Status:` to `done`
-- Append a `## Seal — <date>` section:
+Output it in a ```text fenced block so the user can copy it.
+
+Example:
+```text
+feat(testimonial-slider): add autoplay testimonial slider block
+```
+
+## 6. Mark the plan done
+
+Edit the plan: flip `Status:` to `done`, append:
 
 ```markdown
 
 ## Seal — <today's date>
 
-Commit message drafted (see session output). Plan archived.
+Commit message drafted. Plan archived.
 ```
 
-### 7. Move the plan to done/
+## 7. Move to done/
 
 ```bash
 mv .claude/plans/active/<slug>.md .claude/plans/done/<slug>.md
 ```
 
-### 8. Hand off
+## 8. Hand off
 
-Tell the user:
-
-> Plan archived to `.claude/plans/done/<slug>.md`. Commit message is above — copy it, run `git commit` yourself, then `git push` when ready.
+> Plan archived to `.claude/plans/done/<slug>.md`. Commit message is above — copy it, run
+> `git commit` yourself, then push when ready.
 
 End the session.
 
 ## Don't do
 
-- **Don't run `git commit`.** Hard rule. The user owns commits.
-- **Don't run `git push`.** Same reason.
-- **Don't `git add`** unless the user explicitly asks. Leave staging to them.
-- **Don't draft multiple message variants.** Pick one, commit to it, output it.
-- **Don't pad the body.** Two paragraphs max. Diff shows WHAT — body explains WHY.
+- **Don't run `git commit` or `git push`.** Hard rule — the user owns commits.
+- **Don't `git add`** unless asked.
+- **Don't draft multiple variants.** One message, committed to.
+- **Don't write a long body.** One line; at most one sentence of why.
