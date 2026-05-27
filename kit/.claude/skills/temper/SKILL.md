@@ -1,275 +1,160 @@
 ---
 name: temper
-description: "Phase 3 of the cool-fse workflow. Audit the work done by Forge against project standards. Default: code review + ACF editor-UX. Pass --visual for visual, design, and a11y passes too. Writes a Temper Report into the plan. No auto-fix loop — user directs the next step. Triggered by /temper [slug] [--visual], \"review the implementation\", \"check my code\"."
+description: Phase 3 of the cool-fse workflow. Audit Forge's work in three passes — code, accessibility, and front-end design — against the plan and CONVENTIONS. Writes a Temper Report into the plan. No auto-fix loop; the user directs the next step. Triggered by /temper [slug], "review the implementation", "check my code".
 ---
 
-You are starting Phase 3 of the four-phase cool-fse workflow. Audit the work Forge produced. Report what you find — do not fix anything yourself unless the user explicitly tells you to. Audit the work against the plan's `## Quality Bar` — every line there gets one check.
+You are Phase 3 of the four-phase cool-fse workflow. Audit what Forge produced and report
+what you find. **Do not fix anything yourself unless the user explicitly tells you to.**
+Audit against `CONVENTIONS.md` and the plan's `## Quality Bar` — every Bar line gets a
+check.
 
-Read `WORKFLOW.md` once. Read `CLAUDE.md` for project specifics. Read `CONTEXT.md` for vocabulary.
+Read `WORKFLOW.md` for the contract, `CLAUDE.md` for project specifics, `CONVENTIONS.md`
+for the standards you're auditing against.
 
-## Process
+## 1. Load the plan
 
-### 1. Load the plan
+If a slug was passed, read `.claude/plans/active/<slug>.md`. Otherwise list `active/` and
+ask which to audit. Confirm `Status: in-progress` and a `Forge complete <date>` line
+(after a `---` near the bottom). If either is missing, ask — Forge may not have finished,
+or the slug is wrong.
 
-If a slug was passed, read `.claude/plans/active/<slug>.md`. Otherwise list `active/` and ask which to audit.
-
-Confirm:
-- `Status: in-progress`
-- A `Forge complete <date>` line is present (after a `---` rule near the bottom)
-
-If either is missing, ask the user — Forge may not have finished, or the slug is wrong.
-
-### 2. Identify diff scope
+## 2. Identify diff scope
 
 ```bash
 git diff --name-only
 git status -s
 ```
 
-Cross-reference with the plan's "Files to Create / Modify". Anything in the diff that's NOT in the plan is **scope drift** — flag it in the report.
+Cross-reference with the plan's "Files to Create / Modify". Anything in the diff that's
+NOT in the plan is **scope drift** — flag it. Read every in-scope file fully, plus 1–2
+existing similar blocks in `{{CHILD_THEME_DIR}}/blocks/gutenberg/` and the relevant
+utility CSS in `cool-fse/blocks/global/css/`.
 
-Read every file in scope fully. Also read 1–2 existing similar blocks in `{{CHILD_THEME_DIR}}/blocks/gutenberg/` to judge fit, and the relevant utility CSS files in `cool-fse/blocks/global/css/`.
+## 3. Is a server reachable?
 
-### 3. Parse flags
+The design pass is richer with a live page. Check once:
 
-Check if `--visual` was passed as an argument (e.g., `/temper testimonial-slider --visual`).
+```bash
+curl -s -o /dev/null -w "%{http_code}" <LOCAL_URL>
+```
 
-**Always dispatched (no flag needed):**
-- Code review subagent (includes the cross-browser compat lint)
-- ACF editor-UX subagent — read-only JSON analysis, cheap, no browser
+`200`/`3xx` → the design subagent drives the page with Playwright and screenshots it.
+Otherwise → the design subagent reviews CSS/markup **statically** and says so. Either
+way, all three passes run. Don't start the server yourself.
 
-**Dispatched only with `--visual`:**
-- Visual review subagent
-- Design review subagent (the `appraise` skill)
-- Accessibility subagent
+## 4. Dispatch three audits in parallel
 
-The user is the visual reviewer by default; `--visual` adds the automated browser passes.
+Send all three in a single message (multiple Agent calls). Each is read-only and
+reports — none of them edits code.
 
-### 4. Dispatch subagents
+### Pass 1 — Code audit
 
-Send all applicable subagents in a single message (multiple Agent tool calls). Default
-run = Subagents 1 + 2. With `--visual` = Subagents 1–5.
+`feature-dev:code-reviewer` (retry with `general-purpose` if that type errors). Brief it
+with the plan's file list, the diff, `CONVENTIONS.md`, and these checks in priority order:
 
-#### Subagent 1 — Code Review (always)
+- **A. Utility-class audit (highest).** For every CSS rule in a `{{CHILD_THEME_DIR}}/blocks/**/*.css` diff file, ask "could a utility class from `cool-fse/blocks/global/css/` replace this?" Common offenders: `display:flex` / `gap` / `align-items` / `text-align` / `font-*` / `color` via `--wp--preset--*` / `padding` / `margin`. Name the specific replacement class.
+- **B. Naming.** Block folder + files kebab-case and matching; JSON `"name": "acf/<block>"`; PHP root class = `<block>`; CSS root `<block>` with `<block>--<element>` descendants (double hyphen, never `__`); ACF keys snake_case, labels Title Case.
+- **C. PHP pattern (per CONVENTIONS).** `get_block_attributes(@$_block_data, …)` on root; `get_wrapper_attributes()` on wrapper; `acf_to_css_var()` for ACF style fields; `maybe_get_block_video_background()` where relevant; sub-blocks via `block('…')`; `esc_html`/`esc_url`/`esc_attr` on output. Image fields not `return_format: id` or not via `img_if()` = **blocking**. Link fields not via `acf_link()` = **blocking**.
+- **D. Block JSON.** `"style": ["cool-fse-css"]`, `"script": "cool-fse-js"`, `"acf": { "mode": "preview", "renderCallback": "acf_display_gutenberg_block_callback" }`, `category` set. (Structural blocks may set `inserter:false`/`multiple:false` and omit `example` — not a finding.)
+- **E. ACF JSON + editor UX.** Edited directly in `acf-json/` (no WP-Admin export artifacts); keys consistent with neighbors. Editor UX: every field has `instructions`; `required:1` on fields the block can't render without; repeaters set `collapsed` to a title sub-field + a specific `button_label`; related fields grouped; labels jargon-free. Editor-UX items are **suggested**, never blocking.
+- **F. Hygiene.** No `var_dump`/`print_r`/`console.log`; no commented-out code; no hardcoded hex or magic spacing; no inline `style=""` outside `acf_to_css_var()`; no `!important` without a comment.
+- **G. Unauthorized `cool-fse/` edits.** Anything in `cool-fse/` not in the plan's pre-approved gates = **blocking**.
+- **H. Cross-browser lint.** Flag features outside the matrix (latest Chrome/Firefox/Safari/Edge, no IE): `:has()`, `backdrop-filter`, subgrid, `@container`, `@property`, top-level `await`. Name the concern + a fallback. **Suggested** unless it has no fallback and breaks a supported browser, then **blocking**.
+- **I. Quality Bar coverage.** For each plan `## Quality Bar` line, confirm the diff addresses it (e.g. a "stacks below 768px" line implies a `@media (max-width:768px)` rule). A Bar line with no implementation = **suggested**.
 
-Use `feature-dev:code-reviewer` as the subagent type. If the Agent tool returns an error for that type, retry with `general-purpose`. Brief it with:
+Categorize each finding **blocking** / **suggested** / **nit**, with `file:line` and a concrete fix.
 
-- The plan's "Files to Create / Modify"
-- The actual diff
-- These checks (in priority order):
+### Pass 2 — Accessibility (ADA) audit
 
-**A. CSS utility-class audit (HIGHEST priority)**
-For every CSS rule in any `{{CHILD_THEME_DIR}}/blocks/**/*.css` file in the diff: ask "could this be replaced by a utility class from `cool-fse/blocks/global/css/`?" Common offenders: `display: flex` / `gap` / `align-items` / `text-align` / `font-*` / `color` using `--wp--preset--*` vars / `padding` / `margin`. Read the utility class files first; name the specific class as the replacement.
+`general-purpose`. Brief it with the diff and the plan's Verification section. Check:
+semantic HTML and landmarks; heading hierarchy (no skipped levels); alt text on images
+(empty `alt=""` for decorative is fine); ARIA on custom elements that need it; every
+interactive element keyboard-reachable with a visible focus state; WCAG AA text contrast;
+form labels; `prefers-reduced-motion` respected by any animation. **Accessibility findings
+are suggestions-only** unless the plan explicitly required a level (e.g. "must pass WCAG
+AA").
 
-**B. Naming conventions**
-- Block folder + file names: `kebab-case`, all matching
-- Block JSON `"name"`: `acf/<block-name>` — matches folder
-- PHP root class on block: `<block-name>` — matches folder
-- CSS root selector: `<block-name>` (BEM descendants `<block-name>--<element>`, double hyphen not `__`)
-- ACF field keys: `snake_case`; labels: Title Case
+### Pass 3 — Front-end design audit
 
-**C. PHP block pattern**
-- `get_block_attributes()` on the root, not hand-rolled `class=`
-- `get_wrapper_attributes()` on the wrapper, not hand-rolled
-- `acf_to_css_var()` on the block root for ACF style fields
-- `maybe_get_block_video_background()` inside the root where relevant
-- Sub-blocks via `block('...')`, not `get_template_part()` / `include`
-- `esc_html` / `esc_url` / `esc_attr` on output; raw echo only for wysiwyg
-- Image fields not using `return_format: id` or not rendered via `img_if()` = **blocking**
-- ACF link fields not rendered via `acf_link()` = **blocking**
+`general-purpose`, with Playwright if the server was reachable in step 3 (drive the
+block's page, screenshot desktop + 375px to `.claude/screenshots/<slug>/`), else static
+from CSS/markup + any screenshots in that folder. Brief it with the plan's
+`## Visual Reference` and the `## Quality Bar` visual line. This is the "looks very good"
+check — judge design, not code style. Score each axis Pass / Weak / Fail with a one-line
+reason:
 
-**D. Block JSON correctness**
-- `"style": ["cool-fse-css"]` and `"script": "cool-fse-js"` present
-- `"acf": { "mode": "preview", "renderCallback": "acf_display_gutenberg_block_callback" }`
-- `"category"` set
+1. **Spacing & rhythm** — consistent scale, deliberate breathing room
+2. **Typographic hierarchy** — clear levels, sensible line-height/length
+3. **Alignment & structure** — aligns to a system; nothing accidentally off-grid
+4. **Visual balance** — weight distributed deliberately
+5. **Color & emphasis** — theme tokens; emphasis lands where it should; intentional contrast
+6. **Interactive states** — hover / focus-visible / active / disabled all designed
+7. **Responsive composition** — *composed* at 375px, not just unbroken; tap targets adequate
+8. **Dark/light** — works on whichever backgrounds the plan specified
+9. **Polish / not-generic** — bespoke, not a default AI card
 
-**E. ACF JSON correctness**
-- Field group edited directly in `acf-json/` (no WP-Admin-export artifacts like unexpected `modified` keys)
-- Field key naming consistent with neighboring groups
+Return a **Verdict: Approve | Recommend changes** (Approve only when no axis is Fail and
+at most one Weak), plus findings (axis — what's wrong — concrete change — screenshot ref).
+Design findings are **suggested** unless they contradict the plan's `## Visual Reference`,
+then **blocking**.
 
-**F. Hygiene**
-- No `var_dump`, `print_r`, `console.log`
-- No commented-out code
-- No magic numbers or hardcoded hex
-- No inline `style=""` outside `acf_to_css_var()` output
-- No `!important` without a comment explaining why
+## 5. Merge findings
 
-**G. Unauthorized `cool-fse/` edits**
-Anything modified inside `cool-fse/` that isn't in the plan's pre-approved gate list = **blocking**.
+Combine into one report. **Blocking** (must fix before Seal): unauthorized parent edits,
+missing required PHP helpers, image/link fields not using `img_if`/`acf_link`, broken
+visual states, scope drift that changes intent, design findings that contradict the
+Visual Reference. **Suggested**: utility-class replacements, missing escaping, naming
+slips, cross-browser, ACF editor-UX. **Nit**: cosmetic. Accessibility: suggestions-only,
+own subsection. Within each category, sort by impact.
 
-**H. Scope drift**
-Files in the diff not in the plan = flag, may be **suggested** or **blocking** depending on what they are.
+## 6. Write the report
 
-**I. Cross-browser compat lint**
-For every CSS/JS feature in the diff, flag anything outside the support matrix (latest
-Chrome/Firefox/Safari/Edge, no IE). Watch for: `:has()`, `backdrop-filter`, subgrid,
-`@container` queries, `@property`, top-level `await`. For each flag, name the concern
-and a fallback. Categorize as **suggested** — unless the feature has no fallback and
-breaks layout in a supported browser, then **blocking**.
-
-**J. Quality Bar coverage**
-Cross-reference the plan's `## Quality Bar`. For each line, confirm the diff actually
-addresses it (e.g., a "stacks below 768px" line implies `mobile:` utilities in the
-markup). A Quality Bar line with no corresponding implementation = **suggested**.
-
-Subagent should categorize each finding as **blocking** (must fix before Seal), **suggested** (worth fixing), or **nit** (cosmetic). Output: a list of findings with `file:line` references and concrete proposed fixes.
-
-#### Subagent 2 — ACF Editor UX (always)
-
-Use the `general-purpose` agent (or `Explore`). Read-only JSON analysis — no browser
-needed, so this runs every Temper. Brief it with the diff's
-`{{CHILD_THEME_DIR}}/acf-json/*.json` files and the plan's `## Quality Bar` ACF line.
-Checks:
-
-- **Instructions** — every field has a non-empty `instructions` string describing what
-  it does and any constraint (image dimensions/aspect, character limits).
-- **Required** — `required: 1` on every field the block can't render without
-  (cross-check the block PHP's early-return conditions).
-- **Repeaters** — `collapsed` set to a meaningful sub-field key (rows stay labeled when
-  collapsed); `button_label` is specific ("Add Resource", not the default "Add Row");
-  `min`/`max` set where the design implies bounds.
-- **Grouping & order** — related fields grouped via `tab` / `group` / `accordion`; field
-  order matches the block's visual order.
-- **Conditional logic** — fields irrelevant to the current selection are hidden.
-- **Labels** — Title Case, jargon-free, consistent with `CONTEXT.md` vocabulary.
-- **Preview** — block JSON has an `example` so preview mode renders.
-
-Output: findings with `file` references and concrete proposed JSON changes. Categorize
-as **suggested** or **nit** — ACF editor-UX findings are never blocking.
-
-#### Subagent 3 — Visual Review (`--visual` only)
-
-Skip this subagent unless `--visual` was passed.
-
-Use Playwright (or the `general-purpose` agent with Playwright access). Brief it with:
-
-- The plan's "Verification" section
-- The local URL and any auth (from `CLAUDE.md`)
-- Any `before-*.png` screenshots already in `.claude/screenshots/<slug>/`
-
-Have it:
-- Drive the same flow Forge ran
-- Take fresh `temper-*.png` screenshots
-- Compare to `before-*.png` if any exist
-- Check adjacent areas of the page for unintended visual regressions
-- Note anything that doesn't match the plan's visual reference
-
-Output: list of visual findings with screenshot paths.
-
-#### Subagent 4 — Design Review (`--visual` only)
-
-Skip unless `--visual` was passed. Dispatch a `general-purpose` agent with Playwright
-access and have it follow the `appraise` skill. Brief it with:
-
-- The plan's `## Visual Reference` and the `## Quality Bar` visual-quality line
-- The local URL and any auth (from `CLAUDE.md`)
-- The block's page URL
-
-`appraise` evaluates design quality against a fixed rubric and returns a verdict
-(**Approve** / **Recommend changes**) plus actionable findings. Design-review findings
-are **suggested** — unless they contradict the plan's `## Visual Reference`, then
-**blocking**.
-
-#### Subagent 5 — Accessibility (`--visual` only)
-
-Skip this subagent unless `--visual` was passed.
-
-Use the `general-purpose` agent. Brief it with the same scope. Run these checks:
-
-- Semantic HTML (proper headings, lists, landmarks)
-- Heading hierarchy (no skipped levels)
-- Alt text on all `<img>` (empty `alt=""` for decorative is OK)
-- ARIA attributes on custom elements that need them
-- Keyboard navigability — every interactive element reachable + has visible focus state
-- Color contrast on text (target WCAG AA)
-- Form labels (if any)
-- Reduced-motion respect (any animation should honor `prefers-reduced-motion`)
-
-Output: a list of suggestions. **Accessibility findings are never blocking.** They go in their own subsection of the report (`### Accessibility — suggestions only`).
-
-### 5. Merge findings
-
-Combine subagent outputs into a single Temper Report. Categorize:
-
-- **Blocking** — must fix before Seal (unauthorized parent edits, missing required PHP helpers, broken visual states, scope drift that changes intent)
-- **Suggested** — worth fixing (CSS that should be utility classes, missing escaping, naming inconsistencies)
-- **Nit** — cosmetic (extra blank lines, comment style)
-- **Accessibility** — suggestions only
-- **ACF Editor UX** — suggestions only, never blocking; its own report subsection
-- **Design Review** — the `appraise` verdict pass; its own report subsection; omit if `--visual` was not passed
-
-Within each category, sort by impact.
-
-### 6. Write the report
-
-Append to the plan file, at the bottom:
+Append to the bottom of the plan:
 
 ```markdown
 
 ## Temper Report — <today's date>
 
-**Summary:** <one paragraph: overall fit, biggest issue, anything that
-needs rework before commit>.
+**Summary:** <one paragraph: overall fit, biggest issue, anything needing rework before commit>.
 
-**Counts:** <X> blocking, <Y> suggested, <Z> nits, <N> a11y, <M> ACF UX, design verdict: <Approve | Recommend changes>.
+**Counts:** <X> blocking, <Y> suggested, <Z> nits, <N> a11y. Design verdict: <Approve | Recommend changes>.
 
 ### Blocking
-1. **<file>:<line>** — <issue>. <concrete proposed fix>
-2. ...
+1. **<file>:<line>** — <issue>. <concrete fix>
 
 ### Suggested
-1. **<file>:<line>** — <issue>. <concrete proposed fix>
-2. ...
+1. **<file>:<line>** — <issue>. <concrete fix>
 
 ### Nits
 1. **<file>:<line>** — <issue>.
-2. ...
-
-### ACF Editor UX — suggestions only
-1. **<file>** — <issue>. <concrete proposed JSON change>
-2. ...
 
 ### Accessibility — suggestions only
-1. **<file>:<line>** — <issue>. <concrete proposed fix>
-2. ...
+1. **<file>:<line>** — <issue>. <concrete fix>
 
-### Visual Review
-*(omit this section if `--visual` was not passed)*
-- Screenshots: `.claude/screenshots/<slug>/temper-*.png`
-- <findings, if any>
-
-### Design Review
-*(omit unless `--visual` was passed)*
+### Front-end design
 - **Verdict:** Approve | Recommend changes
-- Rubric + findings from the `appraise` pass; screenshots in `.claude/screenshots/<slug>/`
+- 9-axis rubric + findings. Screenshots: `.claude/screenshots/<slug>/` (if a server was reachable).
 
 ### CSS → Utility Class Replacements
-*(if any — these are the highest-priority "suggested" items)*
-1. `<file>:<line>` — replace `display: flex; gap: var(--wp--preset--spacing--40);`
-   with utilities `flex gap-40` on the wrapper at `<other-file>:<line>`. Remove the rule.
-2. ...
+1. `<file>:<line>` — replace `display:flex; gap:var(--wp--preset--spacing--40);` with utilities `flex gap-40` on the wrapper. Remove the rule.
 ```
 
-If a category has no items, write `_None._` under it. Omit a flag-gated section entirely (Visual Review, Design Review) when its flag wasn't passed.
+Write `_None._` under any empty category.
 
-### 7. Hand off
-
-Tell the user:
+## 7. Hand off
 
 > Temper Report appended to `.claude/plans/active/<slug>.md`.
-> **<X> blocking, <Y> suggested, <Z> nits, <N> a11y, <M> ACF UX. Design: <verdict>.**
-> What do you want to do — fix in this session, fix manually, or proceed to `/seal`?
+> **<X> blocking, <Y> suggested, <Z> nits, <N> a11y. Design: <verdict>.**
+> Fix in this session, fix manually, or proceed to `/seal`?
 
-Wait. **Do NOT auto-fix.** The user decides.
-
-If they ask for fixes, do them in this session and append a `### Temper fixes — <date>` subsection noting what was fixed. Then hand off again.
-
-If they say proceed to seal, do nothing further — they'll start a new session.
+Wait. **Do NOT auto-fix.** If the user asks for fixes, do them here and append a
+`### Temper fixes — <date>` subsection, then hand off again. If they say seal, do nothing
+further.
 
 ## Don't do
 
-- **Don't auto-fix anything without permission.** Report and wait.
-- **Don't run the full Forge process again.** Temper is audit-only.
+- **Don't auto-fix without permission.** Report and wait.
+- **Don't re-run the whole Forge build.** Temper is audit-only.
 - **Don't run `git commit`.**
-- **Don't escalate accessibility findings to blocking** unless the plan explicitly required a level (e.g., "must pass WCAG AA").
-- **Don't dispatch subagents serially when they could run in parallel.** Single message, multiple Agent calls.
+- **Don't escalate accessibility to blocking** unless the plan required a level.
+- **Don't dispatch the three passes serially.** Single message, parallel.

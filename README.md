@@ -1,15 +1,29 @@
 # cool-fse-claude-workflow
 
-A drop-in AI workflow kit for [cool-fse](https://github.com/) based WordPress child-theme projects.
+A drop-in AI workflow kit for cool-fse-based WordPress child-theme projects.
 
-Installs alongside the `cool-fse` parent theme and your child theme inside `wp-content/themes/` and gives any project four phase commands:
+Installs alongside the `cool-fse` parent theme and your child theme inside
+`wp-content/themes/` and gives any project a simple, named flow — one phase per stage of
+the work:
 
-- `/ponder` — grill out the design, pick a lane, write a plan
-- `/forge` — execute the plan, run Playwright on UI tasks, pause on new approval gates
-- `/temper` — parallel review (code + visual + a11y) and write a report into the plan
-- `/seal` — draft a commit message, archive the plan (you run the commit yourself)
+```
+/ponder ─→ /inscribe ─→ /forge ─→ [you review] ─→ /temper ─→ /seal
+```
 
-Everything else — methodology, lane definitions, plan format — lives in [`kit/WORKFLOW.md`](kit/WORKFLOW.md).
+- 💭 `/ponder` — grill out the design, pick a lane
+- ✍️ `/inscribe` — write the agreed design into a plan file, hand off to Forge
+- 🔥 `/forge` — execute the plan, verify the build, pause on new approval gates
+- 🧊 `/temper` — three audits in one pass: code, accessibility, front-end design
+- 🗡️ `/seal` — draft a short commit message, archive the plan (you run the commit yourself)
+
+Plus `/sharpen` — a standalone helper for writing a sharper prompt, anytime.
+
+Each phase runs in its own session and hands off through a single plan file. The
+methodology lives in [`kit/WORKFLOW.md`](kit/WORKFLOW.md); the cool-fse coding standards
+live in [`kit/CONVENTIONS.md`](kit/CONVENTIONS.md).
+
+**A running dev server is optional** — the flow builds code with or without Local. A live
+server only adds browser review and Temper's live design pass.
 
 ## Install
 
@@ -22,9 +36,9 @@ curl -fsSL https://raw.githubusercontent.com/NaNathan13/cool-fse-claude-workflow
 The installer:
 
 1. Verifies you're in a `wp-content/themes/` dir (must contain `cool-fse/` and at least one other theme dir)
-2. Asks for project name, child theme dir, and local URL (local proxy port defaults to `10000`)
-3. Copies `WORKFLOW.md`, `.claude/skills/*`, `.claude/settings.json`, and the empty `.claude/plans/{active,done}/` + `.claude/screenshots/` directories
-4. Renders every kit file — `WORKFLOW.md`, the skills, `CLAUDE.md`, and `CONTEXT.md` — from your answers, and saves those answers to `.claude/.kit-config`
+2. Asks for project name, child theme dir, and local URL (proxy port defaults to `10000`)
+3. Copies `WORKFLOW.md`, `CONVENTIONS.md`, `.claude/skills/*`, `.claude/settings.json`, and the empty `.claude/plans/{active,done}/` + `.claude/screenshots/` dirs
+4. Renders every kit file from your answers and saves them to `.claude/.kit-config`
 5. Drops `.claude/scripts/update.sh` so you can re-run later in update mode
 
 ## Update
@@ -35,20 +49,33 @@ From the same `wp-content/themes/` dir:
 bash .claude/scripts/update.sh
 ```
 
-Update mode refreshes the project-agnostic files (`WORKFLOW.md`, skills) and re-renders them from `.claude/.kit-config`, so your project values survive. It never touches `CLAUDE.md` or `CONTEXT.md`, and it diffs the templates against your current files to print a list of new sections you might want to merge in by hand. (If `.kit-config` is missing — a pre-templating install — it asks for your project values once and creates it.)
+Update mode refreshes the project-agnostic files (`WORKFLOW.md`, `CONVENTIONS.md`, skills)
+and re-renders them from `.claude/.kit-config`, so your project values survive. It never
+touches `CLAUDE.md`, and it diffs the CLAUDE.md template against yours to print any new
+sections you might want to merge in by hand.
+
+See [`docs/upgrading.md`](docs/upgrading.md) for the full breakdown.
 
 ## Requirements
 
 - A `wp-content/themes/` directory with `cool-fse/` (parent) and at least one child theme
 - Claude Code CLI
-- The upstream `/grill-me` skill ([Pocock skills](https://github.com/mattpocock/skills)) — Ponder uses it as its interview engine. Install via the `mattpocock/skills` plugin or copy the SKILL.md into `~/.claude/skills/grill-me/`
 - `gh` CLI (optional — only used by `/seal` when reading recent commits)
+
+No external skill dependencies — Ponder runs its own interview.
 
 ## Why this exists
 
-Working on cool-fse child themes with hand-rolled `grill-to-imp` / `execute-imp` / `review-imp` skills got the job done but wasn't quite right — too coupled to whichever project they were originally written for, no clean separation between "plan" and "build" sessions, no place for visual review or a11y.
+Working on cool-fse child themes with hand-rolled `grill-to-imp` / `execute-imp` /
+`review-imp` skills got the job done but was too coupled to one project and blurred the
+"plan" and "build" sessions.
 
-This kit refines that into four phases modeled after the Pocock-style workflow, but stripped of GitHub issues, mission-control, tests, and CI — none of which fit a static-site WP theme.
+This kit refines that into a small set of named phases, then strips out everything a
+static-site WP theme doesn't need — GitHub issues, mission-control, tests, CI, and any
+external skill dependency. Every cool-fse convention lives in exactly one place
+([`CONVENTIONS.md`](kit/CONVENTIONS.md)), verified against a real cool-fse codebase.
+
+The full rationale lives in [`docs/design-notes.md`](docs/design-notes.md).
 
 ## License
 

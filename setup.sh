@@ -6,7 +6,7 @@
 # First run: copies the kit, prompts for project values, renders every kit file
 #            from them, and writes .claude/.kit-config.
 # Re-run:    refreshes project-agnostic files and re-renders them from
-#            .claude/.kit-config; never touches CLAUDE.md / CONTEXT.md.
+#            .claude/.kit-config; never touches CLAUDE.md.
 
 set -o pipefail
 
@@ -94,7 +94,7 @@ KIT_CONFIG="$TARGET/.claude/.kit-config"
 
 # Skills retired from the kit — purged from existing installs on update.
 # The current skill list (KIT_SKILLS) is derived from the cloned repo below.
-LEGACY_SKILLS=(scrub)
+LEGACY_SKILLS=(scrub burnish appraise researcher)
 
 # Banner (colors only when stdout is a terminal)
 if [[ -t 1 ]]; then
@@ -203,8 +203,9 @@ fi
 
 # --- 5. Copy project-agnostic files (both modes) --------------------------------------
 echo ""
-echo "→ copying WORKFLOW.md"
+echo "→ copying WORKFLOW.md + CONVENTIONS.md"
 cp "$SRC/kit/WORKFLOW.md" "$TARGET/WORKFLOW.md"
+cp "$SRC/kit/CONVENTIONS.md" "$TARGET/CONVENTIONS.md"
 
 echo "→ copying .claude/skills"
 mkdir -p "$TARGET/.claude/skills"
@@ -269,15 +270,16 @@ EOF
 fi
 
 # --- 7. Render kit files from project values ------------------------------------------
-echo "→ rendering WORKFLOW.md + skills"
+echo "→ rendering WORKFLOW.md + CONVENTIONS.md + skills"
 render_inplace "$TARGET/WORKFLOW.md"
+render_inplace "$TARGET/CONVENTIONS.md"
 for s in "${KIT_SKILLS[@]}"; do
   render_inplace "$TARGET/.claude/skills/$s/SKILL.md"
 done
 
-# --- 8. Install mode: render CLAUDE.md + CONTEXT.md -----------------------------------
+# --- 8. Install mode: render CLAUDE.md ------------------------------------------------
 if [[ "$MODE" == "install" ]]; then
-  echo "→ rendering CLAUDE.md + CONTEXT.md"
+  echo "→ rendering CLAUDE.md"
 
   # Render CLAUDE.md — skip if it already exists (don't clobber hand-edited content)
   if [[ -f "$TARGET/CLAUDE.md" ]]; then
@@ -288,21 +290,12 @@ if [[ "$MODE" == "install" ]]; then
     echo "  → wrote CLAUDE.md"
   fi
 
-  if [[ -f "$TARGET/CONTEXT.md" ]]; then
-    echo "  → CONTEXT.md exists, skipping (rendered template at CONTEXT.md.template-rendered for reference)"
-    render "$SRC/templates/CONTEXT.md.template" "$TARGET/CONTEXT.md.template-rendered"
-  else
-    render "$SRC/templates/CONTEXT.md.template" "$TARGET/CONTEXT.md"
-    echo "  → wrote CONTEXT.md"
-  fi
-
   echo ""
   echo "✓ Installed."
   echo ""
   echo "  Next steps:"
   echo "  1. Start a new Claude Code session here: cd $TARGET && claude"
-  echo "  2. Make sure the upstream /grill-me skill is installed (Pocock skills library)."
-  echo "  3. Skim WORKFLOW.md once, then try /ponder on your first task."
+  echo "  2. Skim WORKFLOW.md + CONVENTIONS.md once, then try /ponder on your first task."
   echo ""
   exit 0
 fi
@@ -337,10 +330,16 @@ template_diff_report() {
 }
 
 template_diff_report "$SRC/templates/CLAUDE.md.template" "$TARGET/CLAUDE.md" "CLAUDE.md"
-template_diff_report "$SRC/templates/CONTEXT.md.template" "$TARGET/CONTEXT.md" "CONTEXT.md"
+
+# CONTEXT.md was retired — its content folded into CLAUDE.md + CONVENTIONS.md.
+if [[ -f "$TARGET/CONTEXT.md" ]]; then
+  echo ""
+  echo "  note: CONTEXT.md is no longer used by the kit (folded into CLAUDE.md + CONVENTIONS.md)."
+  echo "        Nothing references it now — safe to delete once you've moved any custom terms."
+fi
 
 echo ""
 echo "✓ Updated."
-echo "  WORKFLOW.md + .claude/skills/ refreshed and re-rendered from .claude/.kit-config."
-echo "  CLAUDE.md, CONTEXT.md, .claude/plans/, .claude/screenshots/ untouched."
+echo "  WORKFLOW.md, CONVENTIONS.md, + .claude/skills/ refreshed and re-rendered from .claude/.kit-config."
+echo "  CLAUDE.md, .claude/plans/, .claude/screenshots/ untouched."
 echo ""
