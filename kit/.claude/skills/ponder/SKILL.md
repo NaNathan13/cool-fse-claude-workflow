@@ -43,6 +43,7 @@ You run the interview yourself — no external skill needed.
 - New block vs. override of a parent block vs. CSS-only tweak vs. hook extension
 - Field shape (ACF repeater vs. inner blocks vs. flat fields)
 - Layout — exhaust utility classes in `cool-fse/blocks/global/css/` first; read them so you know what exists
+- Wrapper handling — keep the standard wrapper (`get_wrapper_attributes()` + `acf-style-vars`); never override it to fake padding/width. A full-bleed/breakout element is isolated and sized in JS, not served by re-plumbing the wrapper. If the design fights the wrapper width, resolve it now.
 - Custom elements (`<ada-slider>`, `<ada-modal>`, `<animate-on-scroll>`, `<g-map>`, …) — check `cool-fse/blocks/global/js/custom-elements/`
 - Brand tokens — read `{{CHILD_THEME_DIR}}/theme.json`
 - Visual reference — a screenshot, a Figma link, or an existing block to mirror

@@ -56,8 +56,6 @@ Use the canonical term, not the synonym:
 
 ## Response Style
 
-- Be concise. No preamble, no recap, no "I'll now..." narration.
-- Skip explanations of what you just did unless I ask.
-- No verbose plans before small edits. Just edit.
-- Code blocks only when showing code. No pseudo-summaries.
-- End when the task is done. No "let me know if..." closers.
+- Be concise. No preamble, no filler, no narration of the obvious.
+- In a line or two, say what you're about to do and what you just did.
+- Keep every exact detail that matters (files, names, values, decisions); cut the prose around them.

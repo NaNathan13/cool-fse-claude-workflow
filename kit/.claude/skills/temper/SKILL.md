@@ -52,15 +52,21 @@ reports — none of them edits code.
 `feature-dev:code-reviewer` (retry with `general-purpose` if that type errors). Brief it
 with the plan's file list, the diff, `CONVENTIONS.md`, and these checks in priority order:
 
-- **A. Utility-class audit (highest).** For every CSS rule in a `{{CHILD_THEME_DIR}}/blocks/**/*.css` diff file, ask "could a utility class from `cool-fse/blocks/global/css/` replace this?" Common offenders: `display:flex` / `gap` / `align-items` / `text-align` / `font-*` / `color` via `--wp--preset--*` / `padding` / `margin`. Name the specific replacement class.
-- **B. Naming.** Block folder + files kebab-case and matching; JSON `"name": "acf/<block>"`; PHP root class = `<block>`; CSS root `<block>` with `<block>--<element>` descendants (double hyphen, never `__`); ACF keys snake_case, labels Title Case.
-- **C. PHP pattern (per CONVENTIONS).** `get_block_attributes(@$_block_data, …)` on root; `get_wrapper_attributes()` on wrapper; `acf_to_css_var()` for ACF style fields; `maybe_get_block_video_background()` where relevant; sub-blocks via `block('…')`; `esc_html`/`esc_url`/`esc_attr` on output. Image fields not `return_format: id` or not via `img_if()` = **blocking**. Link fields not via `acf_link()` = **blocking**.
-- **D. Block JSON.** `"style": ["cool-fse-css"]`, `"script": "cool-fse-js"`, `"acf": { "mode": "preview", "renderCallback": "acf_display_gutenberg_block_callback" }`, `category` set. (Structural blocks may set `inserter:false`/`multiple:false` and omit `example` — not a finding.)
-- **E. ACF JSON + editor UX.** Edited directly in `acf-json/` (no WP-Admin export artifacts); keys consistent with neighbors. Editor UX: every field has `instructions`; `required:1` on fields the block can't render without; repeaters set `collapsed` to a title sub-field + a specific `button_label`; related fields grouped; labels jargon-free. Editor-UX items are **suggested**, never blocking.
-- **F. Hygiene.** No `var_dump`/`print_r`/`console.log`; no commented-out code; no hardcoded hex or magic spacing; no inline `style=""` outside `acf_to_css_var()`; no `!important` without a comment.
-- **G. Unauthorized `cool-fse/` edits.** Anything in `cool-fse/` not in the plan's pre-approved gates = **blocking**.
-- **H. Cross-browser lint.** Flag features outside the matrix (latest Chrome/Firefox/Safari/Edge, no IE): `:has()`, `backdrop-filter`, subgrid, `@container`, `@property`, top-level `await`. Name the concern + a fallback. **Suggested** unless it has no fallback and breaks a supported browser, then **blocking**.
-- **I. Quality Bar coverage.** For each plan `## Quality Bar` line, confirm the diff addresses it (e.g. a "stacks below 768px" line implies a `@media (max-width:768px)` rule). A Bar line with no implementation = **suggested**.
+- **A. Wrapper integrity / parent layout (highest — usually blocking).** The block must use standard wrapper handling: `get_block_attributes()` + `acf-style-vars` on the root, `get_wrapper_attributes()` on the inner `<div>`. It must **not** change the parent's default layout — no overriding `acf-style-vars`, no per-block wrapper settings faking padding/width, no CSS fighting the wrapper width. This keeps admin settings (padding/width/alignment) consistent across blocks, so re-plumbing the wrapper to control a block's own layout = **blocking**. Only legitimate breakout: a single element (e.g. a full-bleed image) ignoring the padding while sized in JS, the rest of the block still obeying the wrapper. 99.99% of blocks fit with no workaround; treat a claimed exception as a finding to scrutinize, not accept.
+- **B. Utility-class audit (high).** For every CSS rule in a `{{CHILD_THEME_DIR}}/blocks/**/*.css` diff file, ask "could a utility class from `cool-fse/blocks/global/css/` replace this?" Common offenders: `display:flex` / `gap` / `align-items` / `text-align` / `font-*` / `color` via `--wp--preset--*` / `padding` / `margin`. Name the specific replacement class.
+- **C. CSS minimalism, smells & splitting (high).** Scrutinize every block CSS file in the diff:
+  - **Smell-list — flag each occurrence:** `container-type: inline-size` with `cqw`/`cqh` units used as a roundabout `width: 50%`; an inner element referencing a parent's `var(--padding-left)` (give it its own `padding-left` instead); any custom property used with no mobile counterpart; CSS re-implementing wrapper width/padding (overlaps check A).
+  - **Bisect test:** for any heavy CSS file, reason rule-by-rule (mentally comment out, then re-add only what's needed) and report which rules appear deletable — often most of the file.
+  - **Budget (suggested):** files over ~30 lines — justify or shrink; typical is ~10–15.
+  - **Split (suggested):** one file styling multiple sub-blocks should split into parent + per-child-block CSS files (parent CSS in the parent file only).
+- **D. Naming.** Block folder + files kebab-case and matching; JSON `"name": "acf/<block>"`; PHP root class = `<block>`; CSS root `<block>` with `<block>--<element>` descendants (double hyphen, never `__`); ACF keys snake_case, labels Title Case.
+- **E. PHP pattern (per CONVENTIONS).** `get_block_attributes(@$_block_data, …)` on root; `get_wrapper_attributes()` on wrapper; `acf_to_css_var()` for ACF style fields; `maybe_get_block_video_background()` where relevant; sub-blocks via `block('…')`; `esc_html`/`esc_url`/`esc_attr` on output. Image fields not `return_format: id` or not via `img_if()` = **blocking**. Link fields not via `acf_link()` = **blocking**.
+- **F. Block JSON.** `"style": ["cool-fse-css"]`, `"script": "cool-fse-js"`, `"acf": { "mode": "preview", "renderCallback": "acf_display_gutenberg_block_callback" }`, `category` set. (Structural blocks may set `inserter:false`/`multiple:false` and omit `example` — not a finding.)
+- **G. ACF JSON + editor UX.** Edited directly in `acf-json/` (no WP-Admin export artifacts); keys consistent with neighbors. Editor UX: every field has `instructions`; `required:1` on fields the block can't render without; repeaters set `collapsed` to a title sub-field + a specific `button_label`; related fields grouped; labels jargon-free. Editor-UX items are **suggested**, never blocking.
+- **H. Hygiene.** No `var_dump`/`print_r`/`console.log`; no commented-out code; no hardcoded hex or magic spacing; no inline `style=""` outside `acf_to_css_var()`; no `!important` without a comment.
+- **I. Unauthorized `cool-fse/` edits.** Anything in `cool-fse/` not in the plan's pre-approved gates = **blocking**.
+- **J. Cross-browser lint.** Flag features outside the matrix (latest Chrome/Firefox/Safari/Edge, no IE): `:has()`, `backdrop-filter`, subgrid, `@container`, `@property`, top-level `await`. Name the concern + a fallback. **Suggested** unless it has no fallback and breaks a supported browser, then **blocking**.
+- **K. Quality Bar coverage.** For each plan `## Quality Bar` line, confirm the diff addresses it (e.g. a "stacks below 768px" line implies a `@media (max-width:768px)` rule). A Bar line with no implementation = **suggested**.
 
 Categorize each finding **blocking** / **suggested** / **nit**, with `file:line` and a concrete fix.
 
@@ -100,12 +106,14 @@ then **blocking**.
 
 ## 5. Merge findings
 
-Combine into one report. **Blocking** (must fix before Seal): unauthorized parent edits,
-missing required PHP helpers, image/link fields not using `img_if`/`acf_link`, broken
-visual states, scope drift that changes intent, design findings that contradict the
-Visual Reference. **Suggested**: utility-class replacements, missing escaping, naming
-slips, cross-browser, ACF editor-UX. **Nit**: cosmetic. Accessibility: suggestions-only,
-own subsection. Within each category, sort by impact.
+Combine the three passes into one report. **Blocking** (must fix before Seal): unauthorized
+parent edits, overriding `acf-style-vars` / re-plumbing the wrapper to fake padding/width,
+missing required PHP helpers, image/link fields not using `img_if`/`acf_link`, broken visual
+states, scope drift that changes intent, design findings that contradict the Visual
+Reference. **Suggested**: utility-class replacements, CSS smells, oversized/unsplit CSS
+files, missing escaping, naming slips, cross-browser, ACF editor-UX. **Nit**: cosmetic.
+Accessibility: suggestions-only, own subsection. Within
+each category, sort by impact.
 
 ## 6. Write the report
 

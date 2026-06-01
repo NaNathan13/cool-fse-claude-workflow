@@ -63,6 +63,27 @@ Non-negotiable details:
 - No type hints on local variables. Match the helper style (`array`/return types only where existing helpers use them).
 - Never leave `var_dump`, `print_r`, or `console.log` in.
 
+## Respect the wrapper
+
+Every block uses the standard wrapper handling — `get_block_attributes()` with
+`acf-style-vars` on the root, `get_wrapper_attributes()` on the inner `<div>`. Padding and
+width behave the same in every block because the helpers own them. Keep it that way.
+
+**Never change the parent's default CSS/HTML layout.** Admin settings (padding, width,
+alignment) only stay consistent across blocks when each block works *within* the existing
+framework. 99.99% of blocks fit with no workaround; scrutinize any apparent exception
+rather than accepting it.
+
+- **Never override `acf-style-vars`** to set your own padding/width, and never invent
+  per-block wrapper settings to fake what `get_wrapper_attributes()` already does.
+  Overriding the style vars breaks the parent block settings ~every time — it's a red flag.
+- The standard pattern handles content padding everywhere. When one element must break out
+  of it (e.g. a full-bleed image), **only that element ignores the padding** — compute its
+  real width/height in JS and let the rest of the block keep obeying the wrapper. Don't
+  re-plumb the wrapper for the whole block to serve one element.
+- CSS that fights the wrapper width or re-implements its padding is reinventing standard
+  handling — stop and use the standard pattern.
+
 ## Block JSON shape
 
 Content blocks use the full shape:
@@ -103,6 +124,24 @@ as classes in the PHP markup. High-frequency files (read the directory for the r
 `grid-col-helpers.css`, `show-hide-helpers.css`, `text-helpers.css`,
 `sizing-utilities.css`, `positioning-utilities.css`, `hover-focus-animations.css`,
 `transition-utilities.css`.
+
+### Keep it minimal
+
+Hand-written block CSS should be small — a typical block CSS file is ~10–15 lines, not
+100+. Every rule must be justified; if a utility class covers it, delete the rule. A
+ballooning file means utilities were skipped or the block is overcomplicated.
+
+- **Split by block — each CSS file affects only its own direct elements.** Parent block
+  CSS lives in the parent's CSS file only; each sub-block / component gets its **own** CSS
+  file in its own folder that styles only that child. Don't pile every descendant's styles
+  into one long file that reaches across blocks.
+- **Smells that usually mean "delete this":** `container-type: inline-size` with `cqw` /
+  `cqh` units used as a roundabout `width: 50%`; an inner element referencing a parent's
+  `var(--padding-left)` (it shouldn't care about the parent's padding — give it its own
+  `padding-left`); a custom property used with no mobile counterpart; any CSS that
+  re-implements wrapper width/padding (see **Respect the wrapper**).
+- **The bisect test:** for a heavy file, comment all CSS out and re-add only what the live
+  page needs — most files shed the majority of their rules.
 
 ### Naming
 
