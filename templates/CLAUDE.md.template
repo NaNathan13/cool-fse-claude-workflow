@@ -11,6 +11,14 @@ Entry point for Claude Code on the **{{PROJECT_NAME}}** project. Read once at se
 work lives in the `{{CHILD_THEME_DIR}}/` child theme; `cool-fse/` is the shared parent
 (modifying it is an approval gate — see `WORKFLOW.md`).
 
+## Version control
+
+Each theme is its own git repository — `cool-fse/` and `{{CHILD_THEME_DIR}}/` are
+tracked separately, each with its own repo rooted at the theme directory. To see what
+changed, run `git status`, `git log`, and `git diff` from inside the theme you're working
+in. Never assume there is no git tracking, and never fall back to the plan to reconstruct
+changes — the theme's own git history is the source of truth.
+
 ## Local development
 
 - **Local site URL**: `{{LOCAL_URL}}` (typically Local by Flywheel; update if your stack differs)
