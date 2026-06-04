@@ -13,7 +13,9 @@ project a named flow — one phase per stage of the work:
 - `/temper` — three audits in one pass: code, accessibility, front-end design
 - `/seal` — draft a commit message, archive the plan (you run the commit)
 
-Plus `/sharpen` — a standalone helper for writing a sharper prompt, anytime.
+Plus two standalone helpers, usable anytime (not part of the phase chain):
+- `/sharpen` — turn a rough idea into a sharper prompt
+- `/showcase` — build an example-block post demonstrating a Gutenberg block's core variations (a QA/demo page)
 
 Each phase runs in its own session and hands off through a single plan file. A running
 dev server is optional — the flow builds with or without Local; a live server only adds

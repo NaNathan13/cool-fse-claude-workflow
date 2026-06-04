@@ -121,6 +121,7 @@ mid-build makes Forge pause and ask.
 | `/temper [slug]` | 3 | Fresh session, after human review |
 | `/seal [slug]` | 4 | Fresh session, after Temper (or after you've decided to skip it) |
 | `/sharpen` | utility | Anytime you want help writing a sharper prompt — not part of the phase chain |
+| `/showcase [block]` | utility | Anytime — build an example-block post demonstrating a block's core variations (QA/demo page) |
 
 No external skill dependencies. Ponder runs its own interview.
 
