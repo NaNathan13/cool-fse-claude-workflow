@@ -57,19 +57,18 @@ clear. Default standard.
 
 ## The Quality Bar
 
-Every non-trivial block is built against five quality dimensions:
+Every non-trivial block is built against four quality dimensions:
 
 | Dimension | What it means |
 |---|---|
 | **Visual quality** | Looks deliberately designed — spacing rhythm, type hierarchy, polish. Not generic. |
 | **ADA / accessibility** | Keyboard-operable, semantic markup, WCAG AA contrast, reduced-motion respected. |
-| **Cross-browser** | Latest Chrome, Firefox, Safari, Edge. No IE. |
-| **Mobile** | Deliberately composed at 768px and below, via media queries (there is no `mobile:` class prefix). |
+| **Mobile** | Deliberately composed at 768px and below, via media queries. |
 | **ACF editor UX** | Pleasant for a content editor — instructions, sensible labels, required flags, grouped fields. |
 
-It threads through three places: **Ponder** asks all five (cross-browser as a stated
-default), **Inscribe** writes one concrete target per dimension into the plan's
-`## Quality Bar`, and **Temper** audits one check per line. It's a shared checklist, not
+It threads through three places: **Ponder** asks all four, **Inscribe** writes one concrete
+target per dimension into the plan's `## Quality Bar`, and **Temper** audits one check per
+line. It's a shared checklist, not
 an approval gate. Dark/light background support is decided alongside it but tracked in
 Design Decisions, not the Bar.
 
@@ -134,6 +133,15 @@ No external skill dependencies. Ponder runs its own interview.
 - **Don't edit ACF in WP Admin.** Edit `acf-json/*.json` directly.
 - **Don't run `git commit` from a skill.** Seal drafts the message and stops.
 - **Don't let Forge improvise.** Wrong plan → fix the plan or surface a blocker.
+
+## Out of scope (by design)
+
+Deliberately not part of this kit — don't add them back:
+
+- **Tests / TDD / CI** — these themes ship none; verification is the browser + build success.
+- **GitHub issues, kanban, PRDs / ADRs** — plan files in `.claude/plans/` carry the handoff.
+- **An auto-fix loop in Temper** — it reports; the user directs the fix.
+- **Kit versioning / semver** — `main` is the live version; installs pull via `update.sh`.
 
 ## Escape hatches
 

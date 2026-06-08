@@ -1,13 +1,39 @@
 # Conventions
 
-The cool-fse coding standards. **The single source of truth** — Forge builds to this,
-Temper audits against it. Project-agnostic: true for any child theme on the cool-fse
-parent.
+cool-fse coding standards. Single source of truth — Forge builds to this, Temper audits
+against it. Project-agnostic: true for any child theme on the cool-fse parent.
 
 > **The live codebase wins.** `cool-fse/blocks/global/css/` and
 > `cool-fse/blocks/global/js/custom-elements/` are the real source of truth for what
-> utility classes and custom elements exist. This file names the high-frequency ones;
-> read the directories before assuming something does or doesn't exist.
+> exists. Read the directories before assuming a class or element does or doesn't exist.
+
+## Non-negotiables
+
+The rules broken most often. Each is detailed in its section below.
+
+1. **Reuse before building.** Search cool-fse first; mirror the existing pattern. Don't reinvent, don't be clever.
+2. **Never touch the wrapper.** Standard handling only; never override `acf-style-vars` or fake padding/width.
+3. **Utility-class first.** Exhaust `blocks/global/css/` before writing block CSS — new block CSS is an approval gate.
+4. **Layout = `.row` / `.col`.** Never hand-roll `display:flex` / `grid-template` for a layout.
+5. **Semantic tokens only.** `var(--color-<slug>)`, `--font-family-main|accent` — never raw hex or `--wp--preset--*` in block CSS.
+6. **ACF through helpers.** `img_if()`, `acf_link()`, `block()`, … — never hand-rolled markup. Edit ACF in `acf-json/`, never WP Admin.
+7. **Custom element before custom JS.** Check the custom-elements dir before building anything interactive.
+
+## Reuse before you build
+
+The pattern almost always already exists. Find it before writing anything new.
+
+- **Don't reinvent the wheel.** Before any layout, interaction, or helper, search the
+  parent: utility classes in `blocks/global/css/`, custom elements in
+  `blocks/global/js/custom-elements/`, helpers in `features/_helper-functions/`, and how
+  existing `blocks/gutenberg/` blocks solved it. Mirror what's there.
+- **Don't be clever.** Simplest approach on the established pattern wins. A bespoke
+  flex/grid layout instead of `.row`/`.col`, custom-property gymnastics, a hand-rolled
+  slider instead of a custom element — each means the existing tool was skipped.
+- **A new abstraction is a smell.** New block CSS, a new helper, or a clever one-liner only
+  after confirming nothing in the theme does it — then keep it minimal and match the
+  surrounding style.
+- **Can't find the pattern? Ask — don't invent your own framework.**
 
 ## Themes
 
@@ -60,29 +86,27 @@ Non-negotiable details:
 - The root class always includes `acf-style-vars`.
 - Short echo tags `<?=` exclusively — never `<?php echo`.
 - Escape on output: `esc_html`, `esc_url`, `esc_attr`. Raw echo only for ACF wysiwyg fields.
-- No type hints on local variables. Match the helper style (`array`/return types only where existing helpers use them).
+- No type hints on local variables. Match helper style (`array`/return types only where existing helpers use them).
 - Never leave `var_dump`, `print_r`, or `console.log` in.
 
 ## Respect the wrapper
 
-Every block uses the standard wrapper handling — `get_block_attributes()` with
-`acf-style-vars` on the root, `get_wrapper_attributes()` on the inner `<div>`. Padding and
-width behave the same in every block because the helpers own them. Keep it that way.
+Standard wrapper handling, every block: `get_block_attributes()` + `acf-style-vars` on the
+root, `get_wrapper_attributes()` on the inner `<div>`. The helpers own padding and width —
+keep it that way.
 
-**Never change the parent's default CSS/HTML layout.** Admin settings (padding, width,
-alignment) only stay consistent across blocks when each block works *within* the existing
-framework. 99.99% of blocks fit with no workaround; scrutinize any apparent exception
-rather than accepting it.
+**Never change the parent's default CSS/HTML layout.** Admin settings (padding/width/
+alignment) stay consistent only when each block works within the framework. Treat an
+apparent exception as a finding to scrutinize, not accept.
 
 - **Never override `acf-style-vars`** to set your own padding/width, and never invent
-  per-block wrapper settings to fake what `get_wrapper_attributes()` already does.
-  Overriding the style vars breaks the parent block settings ~every time — it's a red flag.
-- The standard pattern handles content padding everywhere. When one element must break out
-  of it (e.g. a full-bleed image), **only that element ignores the padding** — compute its
-  real width/height in JS and let the rest of the block keep obeying the wrapper. Don't
-  re-plumb the wrapper for the whole block to serve one element.
-- CSS that fights the wrapper width or re-implements its padding is reinventing standard
-  handling — stop and use the standard pattern.
+  per-block wrapper settings to fake `get_wrapper_attributes()`. Overriding the style vars
+  breaks parent block settings — red flag.
+- One element breaking out (e.g. a full-bleed image): **only that element** ignores the
+  padding — size it in JS; the rest of the block keeps obeying the wrapper. Don't re-plumb
+  the wrapper for the whole block to serve one element.
+- CSS fighting the wrapper width or re-implementing its padding = reinventing standard
+  handling. Stop, use the standard pattern.
 
 ## Block JSON shape
 
@@ -109,78 +133,98 @@ Content blocks use the full shape:
 }
 ```
 
-- Always `renderCallback`, never `renderTemplate`. Category is `theme-basics`. 2–5 keywords. Font Awesome SVG for the icon.
-- **Structural blocks are the exception.** A header, footer, or other single-use block may set `"inserter": false`, `"multiple": false`, and omit `example` — match how the existing structural blocks are configured rather than forcing the content-block shape.
+- Always `renderCallback`, never `renderTemplate`. Category `theme-basics`. 2–5 keywords. Font Awesome SVG icon.
+- **Structural blocks are the exception.** A header, footer, or other single-use block may set `"inserter": false`, `"multiple": false`, and omit `example` — match the existing structural blocks rather than forcing the content-block shape.
 
 ## CSS
 
 ### Utility-class first
 
-Before writing any block CSS, exhaust the utility classes in
-`cool-fse/blocks/global/css/`. New block-level CSS is an approval gate. Apply utilities
-as classes in the PHP markup. High-frequency files (read the directory for the rest):
+Exhaust the utility classes in `cool-fse/blocks/global/css/` before writing any block CSS.
+New block-level CSS is an approval gate. Apply utilities as classes in the PHP markup.
+High-frequency files (read the directory for the rest):
 
-`display-helpers.css`, `flex-utilities.css`, `spacing-utilities.css`,
-`grid-col-helpers.css`, `show-hide-helpers.css`, `text-helpers.css`,
-`sizing-utilities.css`, `positioning-utilities.css`, `hover-focus-animations.css`,
-`transition-utilities.css`.
+`display-helpers.css`, `flex-utilities.css`, `row-column-grids.css`,
+`spacing-utilities.css`, `grid-col-helpers.css`, `show-hide-helpers.css`,
+`text-helpers.css`, `sizing-utilities.css`, `positioning-utilities.css`,
+`hover-focus-animations.css`, `transition-utilities.css`.
+
+### Layout — compose with `.row` / `.col`
+
+**Never hand-write layout CSS.** cool-fse ships a 12-column responsive flexbox grid
+(`row-column-grids.css`) — use it instead of `display:flex` / `grid-template` in a block
+CSS file.
+
+- `.row` wraps `.col-<bp>-<n>` children (`<n>` = 1–12), e.g. `col-xs-12 col-md-6` → full
+  width on mobile, half from 993px up.
+- Breakpoints: **xs** (all) · **sm** ≥769 · **md** ≥993 · **lg** ≥1201px. Mobile is
+  unprefixed `col-xs-*`; widen at larger breakpoints.
+- On `.row`: align `start|center|end-<bp>`, `top|middle|bottom-<bp>`; distribute
+  `around|between-<bp>`; order `first|last-<bp>`, `.reverse`, `.row--reverse-mobile`;
+  offset `.col-<bp>-offset-<n>`. Gutter `--gap` (default `1rem`) / `--mobile-gap`.
+- CSS-grid alternative: `grid-col-helpers.css` → `.twelve-col-grid` + `.col-span-<n>`
+  (with `tablet:` / `mobile:` prefixes).
+
+Hand-rolled `display:flex` / `grid-template` for a layout = skipped grid utility = Temper finding.
 
 ### Keep it minimal
 
-Hand-written block CSS should be small — a typical block CSS file is ~10–15 lines, not
-100+. Every rule must be justified; if a utility class covers it, delete the rule. A
-ballooning file means utilities were skipped or the block is overcomplicated.
+Block CSS stays small — ~10–15 lines, not 100+. Every rule justified; if a utility covers
+it, delete it. Ballooning = utilities skipped or the block overcomplicated.
 
-- **Split by block — each CSS file affects only its own direct elements.** Parent block
-  CSS lives in the parent's CSS file only; each sub-block / component gets its **own** CSS
-  file in its own folder that styles only that child. Don't pile every descendant's styles
-  into one long file that reaches across blocks.
-- **Smells that usually mean "delete this":** `container-type: inline-size` with `cqw` /
-  `cqh` units used as a roundabout `width: 50%`; an inner element referencing a parent's
-  `var(--padding-left)` (it shouldn't care about the parent's padding — give it its own
-  `padding-left`); a custom property used with no mobile counterpart; any CSS that
-  re-implements wrapper width/padding (see **Respect the wrapper**).
-- **The bisect test:** for a heavy file, comment all CSS out and re-add only what the live
-  page needs — most files shed the majority of their rules.
+- **Split by block.** Each CSS file styles only its own direct elements. Parent block CSS
+  in the parent file only; each sub-block/component gets its own CSS file in its own folder.
+  Don't pile descendants' styles into one cross-reaching file.
+- **Delete-this smells:** `container-type: inline-size` with `cqw`/`cqh` as a roundabout
+  `width: 50%`; an inner element reading a parent's `var(--padding-left)` (give it its own);
+  a custom property with no mobile counterpart; any CSS re-implementing wrapper width/padding.
+- **Bisect test:** comment a heavy file out, re-add only what the live page needs — most
+  shed the majority of their rules.
 
 ### Naming
 
 `<block-name>` as the root class. Elements: `<block-name>--<element>` (double hyphen).
-Modifiers: `<block-name>--<modifier>`. **No double underscores (`__`)** — this is not
-standard BEM.
+Modifiers: `<block-name>--<modifier>`. **No double underscores (`__`)** — not standard BEM.
 
 ### Responsive
 
-The mobile breakpoint is **768px**, written as a media query in the block CSS:
+Mobile breakpoint is **768px**, as a media query:
 
 ```css
 @media (max-width: 768px) { /* mobile rules */ }
 ```
 
-There is **no `mobile:` utility prefix.** For show/hide, use `.mobile-only` /
-`.desktop-only` from `show-hide-helpers.css`. After building, the layout must hold
-together at 375px, not merely "not break."
+A `@media` query is the default — there is no general `mobile:` prefix. A limited
+`mobile:` / `tablet:` prefix exists only for spacing (`mobile:mt-0`, `spacing-utilities.css`)
+and grid col-span (`mobile:col-span-6`, `grid-col-helpers.css`). Show/hide: `.mobile-only` /
+`.desktop-only`. Layout must hold at 375px, not merely "not break."
 
 ### Tokens — no hardcoded values
 
-Use the WordPress-generated preset custom properties (auto-created from `theme.json`):
-`--wp--preset--color--<slug>`, `--wp--preset--font-family--<slug>`,
-`--wp--preset--spacing--<slug>`. Plus the `--font-family-*` vars set in
-`{{CHILD_THEME_DIR}}/blocks/global/css/global.css`. No raw hex, no magic spacing numbers.
-No `!important` without a comment explaining why.
+Semantic CSS vars only — never raw literals or `--wp--preset--*` in block CSS.
+
+- **Color** → `var(--color-<slug>)`, or the `.text-<slug>` / `.bg-<slug>` /
+  `.hover:text-<slug>` / `.hover:bg-<slug>` classes. The parent auto-generates all of these
+  from the `theme.json` palette every load
+  (`features/_front/create-additional-utility-classes-from-theme-json.php`) — add a palette
+  color and they exist. Prefer the class in markup, the var in CSS. Never `--wp--preset--color--*`.
+- **Font family** → `var(--font-family-main)` / `var(--font-family-accent)` (parent
+  `base.css` `:root`). Never `--wp--preset--font-family--<slug>`.
+- **Spacing** → `p-*` / `m-*` / `gap-*` utilities first; `var(--wp--preset--spacing--<slug>)`
+  only when a raw value is unavoidable. Block padding/margin come from the wrapper +
+  `acf-style-vars`, not hand CSS.
+
+No raw hex, no magic numbers. No `!important` without a comment.
+
+> `--color-text`, `--color-background`, `--color-links`, `--color-overlay` are ACF-driven
+> (set per block instance, consumed by `.acf-style-vars`). Reference as fallbacks; never
+> hand-author their values.
 
 ### Interactive states & motion
 
-Every interactive element gets designed `:hover`, `:focus-visible`, and `:active` states
-(`hover-focus-animations.css` and `transition-utilities.css` cover most). Any animation
-honors `prefers-reduced-motion: reduce`.
-
-### Cross-browser
-
-Target the latest Chrome, Firefox, Safari, Edge. No IE. Before a recent feature
-(`:has()`, `backdrop-filter`, subgrid, `@container`, `@property`, top-level `await`),
-confirm baseline support or provide a fallback. When in doubt, prefer the
-already-tested utility classes.
+Every interactive element gets designed `:hover`, `:focus-visible`, `:active` states
+(`hover-focus-animations.css`, `transition-utilities.css` cover most). Any animation honors
+`prefers-reduced-motion: reduce`.
 
 ## ACF helpers
 
@@ -207,14 +251,13 @@ hand-authoring, namespace by group to avoid collisions.
 
 ## Custom elements
 
-Web Components in `cool-fse/blocks/global/js/custom-elements/`, available everywhere.
-Common ones: `<ada-slider>`, `<ada-modal>`, `<animate-on-scroll>`, `<animated-element>`,
-`<g-map>` — plus ~15 more (toggler, read-more, sticky-div, image-compare,
-countdown-timer, seamless-marquee, tool-tip, …). **Check the directory before building
-anything interactive from scratch.**
+Web Components in `cool-fse/blocks/global/js/custom-elements/`, available everywhere:
+`<ada-slider>`, `<ada-modal>`, `<animate-on-scroll>`, `<animated-element>`, `<g-map>`, plus
+~15 more (toggler, read-more, sticky-div, image-compare, countdown-timer, seamless-marquee,
+tool-tip, …). **Check the directory before building anything interactive.**
 
-`window.coolHelperFunctions` (from `blocks/global/js/_helper-functions.js`) provides
-`slideUp`, `slideDown`, `coolAjax`, `debounce`, `generateID`, and cookie / localStorage /
+`window.coolHelperFunctions` (`blocks/global/js/_helper-functions.js`): `slideUp`,
+`slideDown`, `coolAjax`, `debounce`, `generateID`, and cookie / localStorage /
 sessionStorage helpers. Vue 3 is bundled globally for complex interactive blocks; hide
 Vue-controlled elements during init with `v-cloak`.
 
@@ -224,12 +267,12 @@ Vue-controlled elements during init with `v-cloak`.
 
 1. Auto-loads every `.php` under `features/**`.
 2. Auto-loads every file matching `blocks/**/*-autoload.php`.
-3. Before loading a parent file, checks whether the child theme has the same relative
-   path — if so, the child file wins.
+3. Before loading a parent file, checks whether the child theme has the same relative path —
+   if so, the child file wins.
 
 Files prefixed with `_` (e.g. `features/_helper-functions/`) load first as core helpers.
-The prefix sets load order; it does **not** block overriding — a child theme can still
-override a `_`-prefixed file by mirroring its path.
+The prefix sets load order; it does **not** block overriding — a child can still override a
+`_`-prefixed file by mirroring its path.
 
 ## Override path
 

@@ -5,6 +5,12 @@ Entry point for Claude Code on the **{{PROJECT_NAME}}** project. Read once at se
 - **How this codebase works** → `CONVENTIONS.md` (cool-fse coding standards)
 - **How we work** → `WORKFLOW.md` (the ponder → forge → temper → seal methodology)
 
+**Default to reuse.** The cool-fse parent almost always already has the pattern you need —
+a utility class, the `.row`/`.col` grid, a custom element, a render helper. Find it and
+mirror it before writing anything new or clever. Don't reinvent the wheel; don't be clever
+where the theme already has a simpler, established way. See `CONVENTIONS.md` → *Reuse before
+you build*.
+
 ## Project overview
 
 {{PROJECT_NAME}} is a WordPress FSE site on the cool-fse parent theme. Project-specific

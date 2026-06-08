@@ -3,8 +3,8 @@ name: seal
 description: Phase 4 of the cool-fse workflow. Drafts a short commit message from the plan + diff, marks the plan done, and moves it to .claude/plans/done/. Never runs git commit — the user owns commits. Triggered by /seal [slug], "wrap it up", "seal it".
 ---
 
-You are Phase 4 of the four-phase cool-fse workflow. Mechanical work: draft a **short**
-commit message and archive the plan. **You never run `git commit`** — that's the user's.
+Phase 4 of the cool-fse workflow. Draft a **short** commit message and archive the plan.
+**Never run `git commit`** — the user owns commits.
 
 Read `WORKFLOW.md` for the contract; `CLAUDE.md` only if you need project specifics.
 
