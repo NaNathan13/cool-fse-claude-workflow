@@ -107,6 +107,7 @@ Then stop. Don't continue into Forge. Don't write code.
 ## Rules
 
 - ACF field keys follow the naming guidance in `CONVENTIONS.md`.
+- **List every ACF field with type + purpose** in the Approach — Forge turns them into the block's top-of-file `@param` docblock.
 - **Concrete, not hand-wavy.** Undecided ACF key? Decide it now and write it down.
 - **Every approval gate named** — Forge should discover none mid-build.
 - **Every Quality Bar line concrete.** "Mobile: responsive" is not a target; "stacks single-column below 768px" is.

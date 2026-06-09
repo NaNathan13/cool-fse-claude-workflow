@@ -56,7 +56,7 @@ Don't start the server. Don't stop.
 
 Work through "Files to Create / Modify" + "Approach". Per file:
 
-- Build it, following `CONVENTIONS.md` exactly (Non-negotiables, block boilerplate, JSON shape, naming, ACF helpers, utility-first CSS, `.row`/`.col` layout).
+- Build it, following `CONVENTIONS.md` exactly (Non-negotiables, block boilerplate, the top-of-file `@param` docblock for every ACF field, JSON shape, naming, ACF helpers, utility-first CSS, `.row`/`.col` layout).
 - Confirm it: read back what you wrote; verify class names exist in the utility CSS; verify ACF field keys match the JSON; verify escaping (`esc_html`/`esc_url`/`esc_attr`) and `<?=` short tags.
 - Next file.
 

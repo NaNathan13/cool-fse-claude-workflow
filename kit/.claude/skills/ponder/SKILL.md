@@ -69,7 +69,7 @@ Recommend by file count and unknowns. Default **standard**.
 Push down each branch until you could write the steps without further input. Stop when:
 - Every approval gate this plan triggers is identified
 - Every file to create or modify is named
-- Every utility class / custom element / ACF field is decided
+- Every utility class / custom element / ACF field is decided — each field's name, type, and purpose (these become the block's `@param` docblock)
 - Visual reference is locked in (or explicitly waived)
 
 ## 6. Summarize + gate

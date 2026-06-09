@@ -18,6 +18,7 @@ The rules broken most often. Each is detailed in its section below.
 5. **Semantic tokens only.** `var(--color-<slug>)`, `--font-family-main|accent` — never raw hex or `--wp--preset--*` in block CSS.
 6. **ACF through helpers.** `img_if()`, `acf_link()`, `block()`, … — never hand-rolled markup. Edit ACF in `acf-json/`, never WP Admin.
 7. **Custom element before custom JS.** Check the custom-elements dir before building anything interactive.
+8. **Document the fields.** Every block PHP opens with a `@param` docblock — one line per ACF field the template consumes.
 
 ## Reuse before you build
 
@@ -51,9 +52,11 @@ Each Gutenberg block lives in `blocks/gutenberg/<block-name>/`:
 | `<name>-block.json` | Registers the block; sets ACF render callback, icon, category |
 | `<name>.php` | Render template (HTML output) |
 | `<name>.css` | Block-scoped styles (auto-bundled into `public/style.css`) |
-| `<name>.js` | Block-scoped JS (auto-bundled into `public/app.js`) |
+| `<name>.js` | Block-scoped JS (auto-bundled into `public/app.js`) — **front-end only; does not run in the editor canvas** |
+| `<name>.png` | Inserter/preview thumbnail (shown by `show_acf_preview()` in preview mode) |
 
-Block JSON is auto-registered via glob — no manual `register_block_type()`.
+Block JSON is auto-registered via glob — no manual `register_block_type()`. Editor-only
+visual fixes belong in CSS behind `.editor-styles-wrapper`, not in block JS.
 
 ## Block PHP boilerplate
 
@@ -62,6 +65,10 @@ Every block follows this exact pattern:
 ```php
 <?php
 if (!defined('ABSPATH')) exit;
+
+/**
+ * @param string $field_name  What this field holds and how it drives the block.
+ */
 
 $field = get_field('field_name');
 if (empty($field)) return;
@@ -75,13 +82,14 @@ $block_attributes = [
   <?= maybe_get_block_video_background() ?>
   <animate-on-scroll <?= get_block_animation_attributes() ?>>
     <div <?= get_wrapper_attributes() ?>>
-      <!-- content -->
+      <?= el_if($field, 'div', ['class' => 'rich-text']) ?>
     </div>
   </animate-on-scroll>
 </div>
 ```
 
 Non-negotiable details:
+- **Top-of-file `@param` docblock**, one line per ACF field the template consumes: `@param <type> $<field_name> <description>`. Type reflects the ACF return value (`string`; `int` for attachment IDs; a union of literal option strings for selects, e.g. `"image-left"|"image-right"`). Mirror existing blocks (e.g. `content-full-bleed-media.php`).
 - `@$_block_data` (with the `@`) is always the first argument to `get_block_attributes()`.
 - The root class always includes `acf-style-vars`.
 - Short echo tags `<?=` exclusively — never `<?php echo`.
@@ -102,6 +110,10 @@ apparent exception as a finding to scrutinize, not accept.
 - **Never override `acf-style-vars`** to set your own padding/width, and never invent
   per-block wrapper settings to fake `get_wrapper_attributes()`. Overriding the style vars
   breaks parent block settings — red flag.
+- **Never pass a width class into `get_wrapper_attributes()`** — not `wrapper--default`,
+  `wrapper--small`, nor a `--max-width`. The helper picks the modifier itself; passing one
+  double-applies the width (this exact mistake was reverted once already). Pass only genuinely
+  additive classes, e.g. `['class' => 'rich-text']`.
 - One element breaking out (e.g. a full-bleed image): **only that element** ignores the
   padding — size it in JS; the rest of the block keeps obeying the wrapper. Don't re-plumb
   the wrapper for the whole block to serve one element.
@@ -220,6 +232,10 @@ No raw hex, no magic numbers. No `!important` without a comment.
 > (set per block instance, consumed by `.acf-style-vars`). Reference as fallbacks; never
 > hand-author their values.
 
+`get_block_attributes()` auto-adds `dark-background` or `light-background` to the root based on
+the block's background color. Style dark variants with `.dark-background.<block-name> { … }` —
+don't invent your own theme toggle.
+
 ### Interactive states & motion
 
 Every interactive element gets designed `:hover`, `:focus-visible`, `:active` states
@@ -235,7 +251,8 @@ Render through these — never hand-roll the equivalent markup. Confirm signatur
 |---|---|
 | `img_if()` | `img_if($id, $size, string $classes = '', bool $allow_placeholder = false, $additional_attr = []): ?string`. Image fields use `return_format: "id"`; render with this, never raw `<img src>` or `wp_get_attachment_image()`. URL format is for CSS `background-image` only, and must be justified. |
 | `acf_link()` | `acf_link($link, $classes = '', $aria = '', $additional_attr = [])`. Render ACF link fields with this — never build `<a>` tags from the link array by hand. |
-| `acf_to_css_var()` | Converts ACF style fields (padding, color, etc.) to inline CSS custom properties on the block root. |
+| `el_if()` | `el_if($content = '', $tag = 'div', $attr = [])`. Renders `<$tag>$content</$tag>` only when `$content` is non-empty. **Content is the FIRST arg, tag second** (the helper's own docblock shows the wrong order — trust the signature). `$attr` may be an array or a bare class string. |
+| `acf_to_css_var()` | Converts ACF style fields (padding, color, etc.) to inline CSS custom properties on the block root. Takes **no arguments** — reads the block's `styles` clone internally. |
 | `get_block_attributes()` | Block root attributes. First arg is always `@$_block_data`. |
 | `get_wrapper_attributes()` | Applies ACF wrapper width/padding. Pass `['class' => '…']` to add classes (e.g. `rich-text`). |
 | `maybe_get_block_video_background()` | Outputs the background-video element when the ACF video-bg field is set. |
@@ -243,6 +260,12 @@ Render through these — never hand-roll the equivalent markup. Confirm signatur
 | `block()` | `block($_name, $_args = [], $_echo = true)`. Include a sub-block/component — e.g. `block('gutenberg/main-header/logo')` or `block('components/accordion', ['slides' => $slides])` (each `$_args` key becomes a local variable). Replaces `get_template_part()` / `include`. |
 
 ### ACF field definitions
+
+**Every block's field group ends with a `clone` field named `styles`.** That clone is what
+feeds `acf_to_css_var()`, `get_wrapper_attributes()`, `get_block_animation_attributes()`, and
+`maybe_get_block_video_background()` — the spacing, wrapper, background, and animation controls.
+Add the `styles` clone to every new block; never re-invent padding/margin/wrapper/background
+fields by hand.
 
 Field groups are JSON in `{{CHILD_THEME_DIR}}/acf-json/`, edited **directly** — WordPress
 syncs them on next admin load. **Never create or edit ACF fields in WP Admin.** Hand-editing
@@ -258,8 +281,9 @@ tool-tip, …). **Check the directory before building anything interactive.**
 
 `window.coolHelperFunctions` (`blocks/global/js/_helper-functions.js`): `slideUp`,
 `slideDown`, `coolAjax`, `debounce`, `generateID`, and cookie / localStorage /
-sessionStorage helpers. Vue 3 is bundled globally for complex interactive blocks; hide
-Vue-controlled elements during init with `v-cloak`.
+sessionStorage helpers. Vue 3 is present but **legacy and being phased out** — build new
+interactivity on custom elements, not Vue. (Where existing Vue blocks remain, hide
+Vue-controlled elements during init with `v-cloak`.)
 
 ## PHP autoloading
 
