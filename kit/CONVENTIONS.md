@@ -153,6 +153,8 @@ Content blocks use the full shape:
 ### Utility-class first
 
 Exhaust the utility classes in `cool-fse/blocks/global/css/` before writing any block CSS.
+**`UTILITY-CLASSES.md` (theme root) is the quick-reference index of every utility class and
+what it does — read it first; fall back to the source dir only for anything it doesn't list.**
 New block-level CSS is an approval gate. Apply utilities as classes in the PHP markup.
 High-frequency files (read the directory for the rest):
 
@@ -181,9 +183,21 @@ Hand-rolled `display:flex` / `grid-template` for a layout = skipped grid utility
 
 ### Keep it minimal
 
-Block CSS stays small — ~10–15 lines, not 100+. Every rule justified; if a utility covers
-it, delete it. Ballooning = utilities skipped or the block overcomplicated.
+Block CSS stays small — **target ~15 lines, hard ceiling ~25**, not 100+. Every declaration
+must be one a utility class genuinely cannot express (a `@keyframes`, a bespoke shape like a
+CSS chevron, absolute positioning the grid can't do). Anything a utility covers belongs in
+the markup as a class, not in the file. If a block's CSS is over the ceiling, the default
+assumption is that utilities were skipped — justify each remaining rule or move it to a class.
 
+- **No comments.** Block CSS carries essentially no comments — the rules should be
+  self-evident once they're all genuinely bespoke. The rare exception is a single line
+  explaining a non-obvious hack (e.g. why an `!important` is unavoidable). A comment
+  describing what a normal rule does, or section-header banners, means the file is too big —
+  shrink it instead of annotating it.
+- **Utility-first is a build step, not an afterthought.** Before writing a CSS file, list
+  every declaration you intend and map each to a utility class; only the unmappable
+  remainder gets written. Doing this at audit time (Temper) is too late — it's the plan's
+  and Forge's job to carve out the utility/bespoke split up front.
 - **Split by block.** Each CSS file styles only its own direct elements. Parent block CSS
   in the parent file only; each sub-block/component gets its own CSS file in its own folder.
   Don't pile descendants' styles into one cross-reaching file.

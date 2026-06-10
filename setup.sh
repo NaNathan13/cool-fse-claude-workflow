@@ -203,9 +203,10 @@ fi
 
 # --- 5. Copy project-agnostic files (both modes) --------------------------------------
 echo ""
-echo "→ copying WORKFLOW.md + CONVENTIONS.md"
+echo "→ copying WORKFLOW.md + CONVENTIONS.md + UTILITY-CLASSES.md"
 cp "$SRC/kit/WORKFLOW.md" "$TARGET/WORKFLOW.md"
 cp "$SRC/kit/CONVENTIONS.md" "$TARGET/CONVENTIONS.md"
+cp "$SRC/kit/UTILITY-CLASSES.md" "$TARGET/UTILITY-CLASSES.md"
 
 echo "→ copying .claude/skills"
 mkdir -p "$TARGET/.claude/skills"
@@ -270,9 +271,10 @@ EOF
 fi
 
 # --- 7. Render kit files from project values ------------------------------------------
-echo "→ rendering WORKFLOW.md + CONVENTIONS.md + skills"
+echo "→ rendering WORKFLOW.md + CONVENTIONS.md + UTILITY-CLASSES.md + skills"
 render_inplace "$TARGET/WORKFLOW.md"
 render_inplace "$TARGET/CONVENTIONS.md"
+render_inplace "$TARGET/UTILITY-CLASSES.md"
 for s in "${KIT_SKILLS[@]}"; do
   render_inplace "$TARGET/.claude/skills/$s/SKILL.md"
 done

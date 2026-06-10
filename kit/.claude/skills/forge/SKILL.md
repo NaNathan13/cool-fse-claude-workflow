@@ -22,7 +22,7 @@ codebase may have moved. Also read:
 
 - The matching parent file in `cool-fse/` for any override
 - The relevant ACF JSON in `{{CHILD_THEME_DIR}}/acf-json/` for field-group changes
-- `cool-fse/blocks/global/css/` — the utility classes, before writing any CSS
+- `UTILITY-CLASSES.md` (theme root) — the utility-class index, before writing any CSS; only consult `cool-fse/blocks/global/css/` for anything it doesn't list
 - `cool-fse/blocks/global/js/custom-elements/` — for any interactive behavior
 - `{{CHILD_THEME_DIR}}/theme.json` for color/font/spacing presets the plan references
 - 1–2 existing similar blocks in `{{CHILD_THEME_DIR}}/blocks/gutenberg/` to match local style
@@ -59,6 +59,14 @@ Work through "Files to Create / Modify" + "Approach". Per file:
 - Build it, following `CONVENTIONS.md` exactly (Non-negotiables, block boilerplate, the top-of-file `@param` docblock for every ACF field, JSON shape, naming, ACF helpers, utility-first CSS, `.row`/`.col` layout).
 - Confirm it: read back what you wrote; verify class names exist in the utility CSS; verify ACF field keys match the JSON; verify escaping (`esc_html`/`esc_url`/`esc_attr`) and `<?=` short tags.
 - Next file.
+
+**Before writing ANY block CSS — the utility-first pass (do not skip):**
+1. If the plan has a `## CSS Plan`, follow its utility/bespoke split. If it doesn't, derive one now: write out every declaration you're about to add.
+2. For each declaration, find a utility class in `UTILITY-CLASSES.md` that expresses it (`flex flex-column align-center gap-*`, `uppercase`, `font-family-accent`, `text-<slug>`, `cursor-pointer`, `.row`/`.col-*`, …). If one exists, it goes in the **markup as a class** — not in the CSS file.
+3. Only the unmappable remainder gets written to the `.css` file: `@keyframes`, a CSS-drawn shape, an absolute offset the grid can't do.
+4. **No comments** in the CSS (rare single-line hack note only). **Hard ceiling ~25 lines** — if you're over it, you skipped utilities; go back to step 2.
+
+A `display:flex` / `gap` / `align-items` / `font-*` / `color` / `text-transform` declaration in a block CSS file is the exact smell this pass exists to catch — it almost always has a utility. Writing it and letting Temper flag it later is a process failure, not a normal flow.
 
 Don't batch unrelated work. Don't skip ahead. Don't gold-plate.
 

@@ -18,6 +18,7 @@ Read if not already in context:
 - `WORKFLOW.md` — plan-format contract
 - `CLAUDE.md` — project specifics (child theme dir, local URL)
 - `CONVENTIONS.md` — standards (so the Approach is concrete and buildable)
+- `UTILITY-CLASSES.md` — utility-class list (to name real classes in the `## CSS Plan` split)
 - `ls .claude/plans/active/` — avoid duplicating a slug
 
 ## Step 2 — Slug and lane
@@ -68,6 +69,16 @@ Per-file/step prose. Real file names, real utility classes, real ACF field keys,
 custom element tags. Specific enough that Forge executes without judgment calls. For each
 file: what changes, where, why.
 
+## CSS Plan — utilities vs. bespoke  *(required whenever the plan writes any block CSS; omit only if it writes none)*
+Decide the split up front so Forge never hand-rolls what a utility covers:
+- **Utility classes (go in the markup):** list the exact classes for layout/spacing/
+  typography/color/cursor/etc. — `flex flex-column align-center gap-2`, `uppercase
+  font-family-accent`, `text-<slug>`, `.row`/`.col-*`. Verify each against `UTILITY-CLASSES.md`.
+- **Bespoke CSS (the only rules Forge writes):** the short remainder no utility can express —
+  `@keyframes`, a CSS-drawn shape, an absolute-position offset the grid can't do. Name each
+  rule and why it can't be a class. This list IS the CSS budget — keep it under ~25 lines,
+  no comments.
+
 ## Visual Reference
 Paths to `.claude/screenshots/<slug>/`, Figma links, or "waived".
 
@@ -110,6 +121,7 @@ Then stop. Don't continue into Forge. Don't write code.
 - **List every ACF field with type + purpose** in the Approach — Forge turns them into the block's top-of-file `@param` docblock.
 - **Concrete, not hand-wavy.** Undecided ACF key? Decide it now and write it down.
 - **Every approval gate named** — Forge should discover none mid-build.
+- **Any plan that writes block CSS must include the `## CSS Plan` split** — utilities named for the markup, only the unmappable remainder as bespoke CSS (~25 lines max, no comments). Don't describe CSS rules without first carving out what utilities handle.
 - **Every Quality Bar line concrete.** "Mobile: responsive" is not a target; "stacks single-column below 768px" is.
 - **Image fields: specify `return_format: id`** and the `img_if()` size for each. Flag the rare URL exception with rationale.
 - **New blocks: note `category`, `keywords`, `icon` concept** (Forge picks the SVG).

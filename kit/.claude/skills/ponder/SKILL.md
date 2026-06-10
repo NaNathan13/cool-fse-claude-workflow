@@ -11,6 +11,7 @@ solid, then hand off to Inscribe. Write no code this session. Touch theme files 
 - `WORKFLOW.md` — methodology, lanes, plan format, Quality Bar
 - `CLAUDE.md` — project specifics: local URL, child theme dir, build commands, vocab
 - `CONVENTIONS.md` — cool-fse standards (so you grill toward buildable decisions)
+- `UTILITY-CLASSES.md` — the full utility-class list (so you grill toward utility-composed layouts, not bespoke CSS)
 - `ls .claude/plans/active/` — what's in flight, so you don't double up
 
 A screenshot, comp, or reference link → note it; it anchors the plan's Visual Reference.

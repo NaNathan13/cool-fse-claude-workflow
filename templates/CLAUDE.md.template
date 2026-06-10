@@ -4,6 +4,7 @@ Entry point for Claude Code on the **{{PROJECT_NAME}}** project. Read once at se
 
 - **How this codebase works** → `CONVENTIONS.md` (cool-fse coding standards)
 - **How we work** → `WORKFLOW.md` (the ponder → forge → temper → seal methodology)
+- **What CSS utility classes exist** → `UTILITY-CLASSES.md` (read before planning or writing any CSS — utilities-first)
 
 **Default to reuse.** The cool-fse parent almost always already has the pattern you need —
 a utility class, the `.row`/`.col` grid, a custom element, a render helper. Find it and
